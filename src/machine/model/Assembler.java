@@ -1355,25 +1355,30 @@ public class Assembler {
     //CHANGE LOG END: 10
     
     /**
-     * Helper method Ensure label has not been used and follows the regex
-     * pattern ^[a-zA-Z]{1}[a-zA-Z0-9]*$
+     * Helper Method to ensure that a label is both unique and follows the valid
+     * label format (underscores and alpha-numeric characters). 
+     * Invalid Characters: Spaces, only numeric, only hex values, register names
+     *                     and operation mnemonics.
      *
      * @param labels
      * @param token
      * @return boolean
      */
     private boolean isValidLabel(String token) {
-        //if (token.matches("[_]*[a-zA-Z]*[_]*[a-zA-Z]*")) {
+        if (token.matches("[a-zA-Z0-9_]*") 
+                && !token.matches("[0-9]*|0x[0-9a-fA-F]*|0X[0-9a-fA-F]*|R[0-9A-Fa-f]")) {
             for (String label : labels) {
-                if (label != null && label.equals(token)) {
+                //if label is already used, or is an operation or pseudo-op mnemonic
+                if ((label != null && label.equals(token)) || OPERATIONMAP.containsKey(token)
+                        || isPseudoOp(token)) {
                     return false;
                 }
             }
             return true;
-        //}
-        //else {
-        //    return false;
-        //}
+        }
+        else {
+            return false;
+        }
     }
 
     /**
