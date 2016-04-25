@@ -1366,7 +1366,7 @@ public class Assembler {
      */
     private boolean isValidLabel(String token) {
         if (token.matches("[a-zA-Z0-9_]*") 
-                && !token.matches("[0-9]*|0x[0-9a-fA-F]*|0X[0-9a-fA-F]*|R[0-9A-Fa-f]")) {
+                && !token.matches("[0-9]*|0x[0-9a-fA-F]*|0X[0-9a-fA-F]*|R[0-9A-Fa-f]|RSP|RBP")) {
             for (String label : labels) {
                 //if label is already used, or is an operation or pseudo-op mnemonic
                 if ((label != null && label.equals(token)) || OPERATIONMAP.containsKey(token)
