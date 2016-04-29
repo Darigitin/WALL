@@ -121,10 +121,15 @@
  * 
  * 37 jl948836 - 04/17-16: Re-wrote the generateByteCode() function to incorporate
  *                         changes 30-36.
+ * 
  * 38 gl939543 - 04/19/16: Created cross reference under assembler listing
  * 
  * 39 gl939543 - 04/19/16: Point the error message to the error line in assembler listing if
  *                         error(s) detected. 
+ * 
+ * 40 jl948836 - 04/27/16: Added rules to what a label can be.
+ * 
+ * 41 jl948836 - 04/28/16: Modified isOperation() to use OPERATIONMAP
  * /
 
 /*
@@ -328,13 +333,7 @@ public class Assembler {
                     
                     currentLocation += dbOneLocation(tokens, i);
                     //System.out.println("In passOne, after dbOneLocation, currentLocation = " + currentLocation);
-                }   
-                //CHANGE LOG: 23
-                /*else if ((labels[i] != null) && (tokens[0].toUpperCase().equals("RLOAD"))){ //RLOAD after a label
-                    labelMap.put(labels[i], currentLocation);
-                    currentLocation +=4;
-                } */  
-                //CHANGE LOG BEGIN: 10
+                }
                 else if ((labels[i] != null) && (tokens[0].toUpperCase().equals(PSEUDOOPS[4]))) { //EQU                
                     equ(tokens,i);
                 }
@@ -610,12 +609,14 @@ public class Assembler {
             }
         }
         else if (tokens.length <= 1){
-            errorList.add("Error: EQU pseudo op on line " + (i + 1) + " is missing an argument.");
-            errorLines.put((i+1), "Error: EQU pseudo op on line " + (i + 1) + " is missing an argument.");
+            String error = "Error: EQU pseudo op on line " + (i + 1) + " is missing an argument."; 
+            errorList.add(error);
+            errorLines.put((i+1), error);
         }
         else {
-            errorList.add("Error: EQU pseudo op on line" + (i + 1) + " has to many arguments.");
-            errorLines.put((i+1), "Error: EQU pseudo op on line" + (i + 1) + " has to many arguments.");
+            String error = "Error: EQU pseudo op on line" + (i + 1) + " has to many arguments.";
+            errorList.add(error);
+            errorLines.put((i+1), error);
         }
     }
     //CHANGE LOG END: 10
@@ -739,7 +740,7 @@ public class Assembler {
         String[] tokens = operation.split("\\s+", 2); //split opcode from args
         String op = tokens[0].toUpperCase();
         
-        if (OPERATIONMAP.containsKey(op)) { //valid Operation
+        if (isOperation(op)) { //valid Operation
     
             String opCode = OPERATIONMAP.get(op);
             
@@ -1175,7 +1176,6 @@ public class Assembler {
         String result = "000"; //CHANGE LOG: 21
         String tokens[];
         if (secondArg.matches(".+\\[.+\\]")){
-            //System.out.println("****************************************THE REGEX WORKS MOTHERFUCKER!!!!");
             tokens = secondArg.split("\\[|\\]"); //tokens[0]=offset, tokens[1]= reg]
             result = imDRegFormat(op, tokens[0], firstArg, tokens[1], line);
             return result;
@@ -1365,12 +1365,14 @@ public class Assembler {
      * @return boolean
      */
     private boolean isValidLabel(String token) {
-        if (token.matches("[a-zA-Z0-9_]*") 
-                && !token.matches("[0-9]*|0x[0-9a-fA-F]*|0X[0-9a-fA-F]*|R[0-9A-Fa-f]|RSP|RBP")) {
+        if (token.matches("[a-zA-Z0-9_]*")) {
+            if (token.matches("[0-9]*|0[xX0-9a-fA-F]*|[rR][0-9a-fA-F]")
+                    || token.toUpperCase().matches("RBP|RSP") || isOperation(token) || isPseudoOp(token)) {
+                return false;
+            }
             for (String label : labels) {
                 //if label is already used, or is an operation or pseudo-op mnemonic
-                if ((label != null && label.equals(token)) || OPERATIONMAP.containsKey(token)
-                        || isPseudoOp(token)) {
+                if (label != null && label.equals(token)) {
                     return false;
                 }
             }
@@ -1499,12 +1501,14 @@ public class Assembler {
      * @return boolean
      */
     private boolean isOperation(String token) {
-        for (String operation : OPERATIONS) {
-            if (operation.equals(token.toUpperCase())) {
-                return true;
-            }
-        }
-        return false;
+        return OPERATIONMAP.containsKey(token.toUpperCase()); //CHANGE LOG: 41
+        
+//        for (String operation : OPERATIONS) {
+//            if (operation.equals(token.toUpperCase())) {
+//                return true;
+//            }
+//        }
+//        return false;
     }
 
     /**

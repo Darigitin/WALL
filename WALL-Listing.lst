@@ -1,5 +1,5 @@
 *************************** WALL-Listing ***********************
-Created date: 04/25/2016 12:36:58 PM
+Created date: 04/28/2016 10:55:43 PM
 
 
 Location    Object Code       Line   Source Statement
@@ -84,7 +84,7 @@ Location    Object Code       Line   Source Statement
 4E          60 00               79                call   setUp
                                 80   
 50          3A 81               81                store  [Result],retReg
-52          21 81               82                load   R1,add
+52          21 81               82                load   R1,r
 54          E1 1B               83                rstore 1[R1],RB
                                 84   
 56          C0 00               85                halt
@@ -94,7 +94,7 @@ Location    Object Code       Line   Source Statement
 90                              89    temp:       bss    1
                                 90   
                                 91   # EQU Section
-                                92   add:          equ    Result
+                                92   r:          equ    Result
                                 93   retReg:     equ    RA
                                 94   R10:        equ    RA
                                 95   basePtr:    equ    RBP
@@ -103,7 +103,7 @@ Location    Object Code       Line   Source Statement
 
 
 ***************** WALL Cross-Reference Listing *******************
-Created date: 04/25/2016 12:36:58 PM
+Created date: 04/28/2016 10:55:43 PM
 
 
          Cross-Reference Listing Description
