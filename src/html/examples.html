@@ -8,6 +8,7 @@
     <body>
         <div>
             <h1>How to write Loop Structures in WALL</h1>
+            <p>*Note that you wont be able to copy and paste these program examples.</p>
             <p>
                 Just like in High-Level Languages, WALL and any other Assemblers
                 are capable of looping over a section of code until a condition is
@@ -17,9 +18,11 @@
             </p>
             <br>
             <pre>
-                # Sum of the first 10 numbers<br>
-                # R0 is 11 since we terminate on equality.<br>
-                # If R0 was 10, we'd get the sum of the first 9 numbers.<br>
+                # **********************************************************<br>
+                # * Sum of the first 10 numbers                            *<br>
+                # * R0 is 11 since we terminate on equality.               *<br>
+                # * If R0 was 10, we'd get the sum of the first 9 numbers. *<br>
+                # **********************************************************<br>
                         org 0x00<br>
                 main:   load R0,11          # Termination Condition<br>
                         load R1,1           # Constant 1<br>
@@ -39,10 +42,12 @@
                 </samp>
             </pre>
             <pre>
-                # Sum of the first 10 numbers<br>
-                # R0 is 11 since we terminate when R2 is greater than<br>
-                # or equal to R0.<br>
-                # If R0 was 10, we'd get the sum of the first 9 numbers.<br>
+                # **********************************************************<br>
+                # * Sum of the first 10 numbers                            *<br>
+                # * R0 is 11 since we terminate when R2 is greater than    *<br>
+                # * or equal to R0.                                        *<br>
+                # * If R0 was 10, we'd get the sum of the first 9 numbers. *<br>
+                # **********************************************************<br>
                             org   0x00<br>
                 main:       load  R0,11             # Termination Condition<br>
                             load  R1,1              # Constant 1<br>
@@ -91,8 +96,10 @@
                 </li>
             </ol>
             <pre>
-                # Iterate through a String and display it to<br>
-                # the Display Console.<br>
+                # **********************************************<br>
+                # * Iterate through a String and display it to *<br>
+                # * the Display Console.                       *<br>
+                # **********************************************<br>
                 <br>
                 # Data Section<br>
                         org   0x60<br>
@@ -120,8 +127,10 @@
                 </samp>
             </pre>
             <pre>
-                # Iterate through a String and display it to<br>
-                # the Display Console.<br>
+                # **********************************************<br>
+                # * Iterate through a String and display it to *<br>
+                # * the Display Console.                       *<br>
+                # **********************************************<br>
                 <br>
                 # Data Section<br>
                         org   0x60<br>
@@ -167,10 +176,12 @@
             </p>
             <br>
             <pre>
-                # Does a Less Than comparison with JMPLT and then does a Greater<br>
-                # Than comparison with JMPLT (just by switching the arguments).<br>
-                # The Smaller of the two values will be stored into their respective<br>
-                # memory addresses at location 0x70 and 0x71.<br>
+                # **********************************************************************<br>
+                # * Does a Less Than comparison with JMPLT and then does a Greater     *<br>
+                # * Than comparison with JMPLT (just by switching the arguments).      *<br>
+                # * The Smaller of the two values will be stored into their respective *<br>
+                # * memory addresses at location 0x70 and 0x71.                        *<br>
+                # **********************************************************************<br>
                 <br>
                 # Data Section<br>
                             org   0x60<br>
@@ -202,11 +213,156 @@
                 done:       halt<br>
             </pre>
             <h1>Learning Stack Discipline</h1>
+            <h4>What is the Stack?</h4>
             <p>
-                
+                The Stack is an abstraction that allows us to pass values to and from
+                "functions" just like we would in high level languages. Stacks are 
+                also a Last in First out Data Structure. This means that the last
+                value to be put on the Stack, will be the first value taken off the
+                Stack.
             </p>
+            <h4>What is the Stack in WALL?</h4>
+            <p>
+                The Stack in WALL starts at memory address FF (255). This is why
+                that address is reserved by WALL. As you add values to the Stack,
+                you place them "on top" of previous values. (So, conceptually the
+                stack builds up virtically, like a stack of books, but in WALL it
+                will appear to be building horizontally).<br>
+                Note: In WALL, to go "up" the stack, you go down in memory (decreasing
+                memory addresses). To go "down" the stack, you go up in memory (increasing
+                memory addresses).
+            </p>
+            <h4>Looking at the Stack</h4>
+            <p>
+                Here we need to know how to keep track of where the Top of the Stack
+                is.To handle this, WALL has a register reserved for just pointing to the
+                top of the Stack - RE or RSP. WALL also has another register for handling
+                the Stack, called RD or RBP. RBP is to handle pointing to the base of your
+                current "Frame of Reference."
+            </p>
+            <h4>How to interact with the Stack</h4>
+            <p>
+                The main instructions for interacting with the stack in WALL are
+                PUSH, POP, CALL, RET, RLOAD, and RSTORE.<br>
+                CALL - is to allow you to enter a "fucntion" in WALL. It will preserve
+                the return address (which is the current IP), before loading its argument
+                into the IP.<br>
+                RET - allows you to return from a "function" in WALL. For RET to work,
+                the Stack Pointer (RSP) has to be pointing to the return address on the
+                stack before RET executes. Otherwise you'll go off into LaLaLand.<br>
+                RLOAD - allows you to fetch values from the stack. Used by convention
+                with the Base Pointer (RBP) not the Stack Pointer (RSP). You can grab a
+                value upto 7 addresses higher than RBP or 8 addresses lower than RBP.<br>
+                Both PUSH and POP are described fairly well in the Language Reference,
+                so they wont be re-explained here.<br>
+            </p>
+            <h4>Stack Discipline in WALL</h4>
+            <p>
+                Stack Discipline is how you maintain your Stack and how you interact
+                with it. Maintenance means that, since the Stack Pointer and Base Pointer
+                start at address FF, they should end at address FF. Interacting means
+                not Passing By Register and DEFINITELY NOT halting execution if there
+                are still Activation Records on the Stack Panel (other than MAIN).
+            </p>
+            <h4>Boiler Plate</h4>
+            <p>
+                Boiler Plate, is the set of maintenance operations that the user has
+                to do when utilizing the Stack.<br>
+            </p>
+            <h5>Entrance</h5>
             <pre>
-                
+                PUSH  RBP        # store old base pointer<br>
+                MOVE  RBP,RSP    # move stack pointer to base pointer<br>
+            </pre>
+            <p>
+                This is how you move your "Frame of Reference" every time you make
+                a "function" call in WALL. This is to ensure that RLOAD can "reach"
+                the arguments that were PUSHED onto the Stack.<br>
+                Note: Every "function" has its own "Frame of Reference."
+            </p>
+            <h5>Exit</h5>
+            <pre>
+                POP   RBP        # restore base pointer<br>
+                RET<br>
+            </pre>
+            <p>
+                When a function concludes, before it can return, the "Frame of Reference"
+                needs to be reset to the previous "function's" (also called the "caller").
+                Note: After you return, you'll need to clean up your Stack. This means that
+                the Stack Pointer and the Base Pointer should be the same value. There are
+                several ways to do this.<br>
+                What it comes down to, is that there needs to be as many POPs as there
+                are PUSHes on the Stack.
+            </p>
+            <h4>Example of Stack Discipline in WALL</h4>
+            <br>
+            <pre>
+                # *************************************************************************<br>
+                # * FILE:  sumIntR.txt                                                    *<br>
+                # *                                                                       *<br>
+                # * PROGRAM PURPOSE:  Main program is a driver to invoke a recursive      *<br>
+                # *                   function sumIntR that recursively calculates the    *<br>
+                # *                   sum of the first N integers                         *<br>
+                # *                                                                       *<br>
+                # * DATE:  February 15, 2016                                              *<br>
+                # *************************************************************************<br>
+                <br>
+                # Data Segment<br>
+                          ORG      0x60<br>
+                N:        DB       10<br>
+                RESULT:   BSS      1<br>
+                <br>
+                <br>
+                # *************************************************************************<br>
+                # * Function:  sumIntR                                                    *<br>
+                # * Argument:  N where N >= 0                                             *<br>
+                # * Return:    The sum (return value) is returned in RLOAD                *<br>
+                # * Assumed:   R1 contains 1                                              *<br>
+                # *            R0 contains 0                                              *<br>
+                # * Registers Used:  R4 and R5                                            *<br>
+                # *************************************************************************<br>
+                <br>
+                # Code Segment<br>          
+                          ORG      0X00<br>
+                          SIP      MAIN<br>
+                <br>
+                sumIntR:  PUSH  RBP        # store old base pointer<br>
+                          MOVE  RBP,RSP    # move stack pointer to base pointer<br>
+                <br>
+                          RLOAD R5,2[RBP]  # get argument n<br>
+                          JMPEQ R5=R0,END  # jump to end if N = 0, else...<br>
+                          LOAD  R4,0XFF    # -1 for reduction<br>
+                          ADD   R5,R5,R4   # n = n - 1<br>
+                          PUSH  R5<br>
+                          CALL  sumIntR    # recursive call<br>
+                                           # return to next instruction<br>
+                          ADD   RSP,RSP,R1 # bump stack pointer to move past parameter<br>
+                          RLOAD R5,2[RBP]  # fetch this frame's parameter N<br>
+                <br>
+                          ADD   RA,RA,R5   # Calculate N + sumInt( N - 1 )<br>
+                <br>
+                          POP   RBP        # restore old base pointer<br>
+                          RET<br>
+                <br>
+                END:      XOR   RA,RA,RA   # this is base case return of 0<br>
+                <br>
+                          POP   RBP        # restore base pointer<br>
+                          RET<br>
+                <br>
+                # *********************************************************************<br>
+                # * MAIN:  The driver program to test the function sumIntR            *<br>
+                # *********************************************************************<br>
+                          ORG 0X30<br>
+                MAIN:     LOAD R1,1        # constant 1 defined globally<br>
+                          LOAD R0,0        # constant defined as a global comparand<br>
+                          LOAD R2,[N]<br>
+                          PUSH R2 <br>
+                          CALL sumIntR<br>
+                <br>
+                          ADD   RSP,RSP,R1 # clean up operand from stack<br>
+                          STORE [RESULT],RA<br>
+                <br>
+                          HALT<br>
             </pre>
         </div>
     </body>
