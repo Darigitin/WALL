@@ -31,6 +31,7 @@ package machine.controller;
 
 import machine.model.Assembler;
 import java.util.ArrayList;
+import java.util.HashMap;
 //import machine.view.MachineView;
 //import testCode.MachineView;
 import machine.view.MachineView;
@@ -320,20 +321,21 @@ public class MachineController {
 
         return text;
     }
-
+    
     /**
-    * Displays the errorList in the Editor depending on the boolean
-    * value specified
-    * @param errorList
-    */
-    public void setEditorErrors(ArrayList<String> errorList) {
+     * Display the errorList in the Syntax Error Display.
+     * 
+     * @param errorList 
+     */
+    public void setEditorErrors(HashMap<Integer, String> errorList) {
         StringBuilder sb = new StringBuilder();
-
-        for (String error : errorList) {
-            sb.append(error).append('\n');
+        
+        for (String error : errorList.values()) {
+            sb.append(error).append("\n");
         }
-
+        
         machineView.getErrorTextArea().setText(sb.toString());
+        
     }
 
     /**
