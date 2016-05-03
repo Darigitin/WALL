@@ -257,7 +257,7 @@ public class Assembler {
     private void pass1(String text) {
         String[] lines = text.split("\n");
 	int lineCount = lines.length;
-	String[] parseLabel, tokens;
+	String[] tokens;
 	codes = new String[lineCount];
         boolean validLabel;
         String operation;
@@ -267,26 +267,25 @@ public class Assembler {
 	int currentLocation = 0;
 	for (int i = 0; i < lineCount; i++) {
             if (codes[i].contains(":")) { //Line has a label
-                parseLabel = codes[i].split(":[\\s+]*"); //parseLabel[0] = label
-                tokens = parseLabel[1].split("\\s+"); //split line w/o label on spaces
-                validLabel = isValidLabel(parseLabel[0]);
+                tokens = codes[i].split(":[\\s+]*|\\s+"); //parseLabel[0] = label
+                validLabel = isValidLabel(tokens[0]);
                 if (validLabel && tokens.length > 1) {
-                    operation = tokens[0].toUpperCase();
+                    operation = tokens[1].toUpperCase();
                     if (operation.equals(PSEUDOOPS[2])) { //BSS
-                        labelMap.put(parseLabel[0], currentLocation);
+                        labelMap.put(tokens[0], currentLocation);
                         currentLocation += bssLocation(tokens, i);
                     }
                     else if (operation.equals(PSEUDOOPS[3])) { //DB
-                        labelMap.put(parseLabel[0], currentLocation);
-                        referenceLine.put(parseLabel[0], "");
+                        labelMap.put(tokens[0], currentLocation);
+                        referenceLine.put(tokens[0], "");
                         currentLocation += dbOneLocation(tokens, i);
                     }
                     else if (operation.equals(PSEUDOOPS[4])) { //EQU
-                        equ(parseLabel[0], tokens, i); //currentLocation unaffected
+                        equ(tokens, i); //currentLocation unaffected
                     }
                     else if (isOperation(operation)) {
-                        labelMap.put(parseLabel[0], currentLocation);
-                        referenceLine.put(parseLabel[0], "");
+                        labelMap.put(tokens[0], currentLocation);
+                        referenceLine.put(tokens[0], "");
                         currentLocation += 2;
                     }
                     else { //Pseudo-Op, or Operation
@@ -294,17 +293,17 @@ public class Assembler {
                     }
                 }
                 else if (validLabel) { //Label with nothing following
-                    labelMap.put(parseLabel[0], currentLocation);
-                    referenceLine.put(parseLabel[0], "");
+                    labelMap.put(tokens[0], currentLocation);
+                    referenceLine.put(tokens[0], "");
                 }
                 else { //Invalid Label
-                    errorList.put((i+1), "Error: Invalid label " + parseLabel[0] + " on line " + (i+1));
+                    errorList.put((i+1), "Error: Invalid label " + tokens[0] + " on line " + (i+1));
                 }
             }
-            else { 
+            else { //No label
                 tokens = codes[i].split("\\s+"); //split line w/o label on spaces
                 System.out.println(Arrays.toString(tokens));
-                if (tokens.length > 1) { //non-blank line without a label
+                if (tokens.length > 1) { //non-blank line
                     operation = tokens[0].toUpperCase();
                     if (isOperation(tokens[0])) {
                         currentLocation += 2;
@@ -315,6 +314,9 @@ public class Assembler {
                     else if (operation.equals(PSEUDOOPS[3])) { //DB
                         currentLocation += dbOneLocation(tokens, i);
                     }
+                    else if (operation.equals(PSEUDOOPS[0])) { //SIP
+                        //Do Nothing
+                    }
                     else { //Invalid Operation or Pseudo-Op
                         errorList.put((i+1), "Error: Invalid Operation/Pseudo-Op " + operation + " on line " + (i+1));
                     }
@@ -322,20 +324,29 @@ public class Assembler {
             }
 	}
 	resolveForwardReference();
-        
-        //passTwo();
+        //printContent();
+        pass2();
     }
     
     private void pass2() {
         int currentLocation = 0;
-        String[] tokens;
+        String[] tokens, label;
         String bytes;
         Location = new String[codes.length];
         Object_code = new String[codes.length];
         
+        System.out.println("PassTwo");
         for (int i = 0; i < codes.length; i++) { 
-            tokens = codes[i].split(":[\\s+]*|\\s+");
-            if (tokens.length > 0) { //A non-blank line
+            //tokens = codes[i].split(":[\\s+]*|\\s+");
+            if (codes[i].contains(":")) {
+                label = codes[i].split(":.*|\\s+");
+            }
+            else {
+                label = null;
+            }
+            tokens = codes[i].split("\\s+.*:\\s*|\\s+|.*:");
+            System.out.println(Arrays.toString(label) + " " + Arrays.toString(tokens));
+            if (tokens.length > 1) { //A non-blank line with or without a label
                 if (isPseudoOp(tokens[0])) {
                     switch(tokens[0]) { //if a Pseudo-Op
                         case "org":
@@ -349,16 +360,56 @@ public class Assembler {
                             Location[i] = intToHex(Integer.toString(currentLocation));
                             currentLocation += bssLocation(tokens, i);
                             break;
-                        case "SIP":
+                        case "sip":
                             storeSIP(tokens, i);
+                            break;
+                        case "equ":
                             break;
                     }
                 }
-                else if () {
-                    
+                else if (isOperation(tokens[0])) {
+                    if (label != null) {
+                        currentLocation = labelMap.get(label[0]);
+                        Location[i] = intToHex(Integer.toString(currentLocation));
+                    }
+                    if (!errorList.containsKey(i+1)) { //No Invalid Arguments
+                        bytes = generateByteCode(tokens, i + 1);
+                    }
+                    else {
+                        bytes = "0000"; //NO-OP
+                    }
+                    currentLocation += byteCodeInTemp(bytes, currentLocation, i);
+                    //get Object Code for Assembler Listing
+                    StringBuilder bytesInMemory = new StringBuilder(bytes);
+                    if (bytesInMemory.length() > 5){
+                        bytesInMemory.insert (2, " ").toString();
+                        bytesInMemory.insert (5, " ").toString();
+                        Object_code[i] = bytesInMemory.insert (8, " ").toString();
+                    }
+                    else{
+                        Object_code[i] = bytesInMemory.insert (2, " ").toString();
+                    }
+                }
+                else {
+                    errorList.put(i+1, "Error: Some uncaught error on line " + (i+1));
                 }
             }
         }
+        
+        for (int i = 0; i < tempMem.length; i++) {
+            if ((i+1) % 16 == 0) {
+                System.out.print(tempMem[i]);
+                System.out.println();              
+            } else {
+                System.out.print(tempMem[i] + ", ");
+            
+            }
+        }
+
+        byteCode.add(SIP);
+
+        // build up bytecode for return
+        byteCode.addAll(Arrays.asList(tempMem));
     }
     
     /**
@@ -368,24 +419,25 @@ public class Assembler {
      * labels to int, and labels to hex. equivalencies for label to label, and
      * label to register.)
      * 
-     * @param tokens - Label, Register, Int, Hex
+     * @param tokens - tokens[0] is the EQU Label, tokens[1] is EQU, 
+     *                 tokens[2] is a Label, Register, Int, or Hex
      * @param i - location in the labels array
      */
     //CHANGE LOG BEGIN: 10
-    private void equ(String label, String[] tokens, int i){
-        if (tokens.length == 2){ //EQU and Argument
-            if (isHex(tokens[1])) { //Hex for an Argument
-                labelMap.put(label, hexToInt(tokens[1]));
+    private void equ(String[] tokens, int i){
+        if (tokens.length == 3){ //Label, EQU, and Argument
+            if (isHex(tokens[2])) { //Hex for an Argument
+                labelMap.put(tokens[0], hexToInt(tokens[2]));
             }
-            else if (isInt(tokens[1])){ //Int for an Argument
-                labelMap.put(label, Integer.parseInt(tokens[1]));
+            else if (isInt(tokens[2])){ //Int for an Argument
+                labelMap.put(tokens[0], Integer.parseInt(tokens[2]));
             }
             else { //Label or Register for an Argument
-                    equivalencies.put(label, tokens[1]);
-                    forwardReferences.put(label, i);
+                    equivalencies.put(tokens[0], tokens[2]);
+                    forwardReferences.put(tokens[0], i);
             }
         }
-        else if (tokens.length <= 1){
+        else if (tokens.length <= 2){
             String error = "Error: EQU pseudo op on line " + (i + 1) + " is missing an argument."; 
             errorList.put((i+1), error);
         }
@@ -473,7 +525,6 @@ public class Assembler {
             }
         }
         
-        printContent(labels, codes);
         passTwo();
     }
     
@@ -524,7 +575,7 @@ public class Assembler {
                     bytes = "0000";
                 }
                 else {
-                    bytes = generateByteCode(codes[i].trim(), i + 1);
+                    bytes = "0000";//generateByteCode(codes[i].trim(), i + 1);
                 }
                 currentLocation += byteCodeInTemp(bytes, currentLocation, i);
                 // get object code for assembler listing
@@ -549,7 +600,7 @@ public class Assembler {
                     bytes = "0000";
                 }
                 else {
-                    bytes = generateByteCode(codes[i].trim(), i + 1);
+                    bytes = "0000";//generateByteCode(codes[i].trim(), i + 1);
                 }
                 currentLocation += byteCodeInTemp(bytes, currentLocation, i);
                 //get object code for assembler listing
@@ -660,7 +711,7 @@ public class Assembler {
      */
     private int dbOneLocation(String[] tokens, int i) {
         int location = 0;
-        if (tokens.length == 1) { // there must be an argument
+        if (tokens.length == 2) { // there must be an argument
             errorList.put((i+1), "Error: Argument list for DB op is invalid on line " + (i + 1));
         } else {
             location = passOneDB(tokens);
@@ -679,50 +730,13 @@ public class Assembler {
      */
     private int bssLocation(String[] tokens, int i) {
         int location = 0;
-        if (tokens.length == 2 && (isHex(tokens[1]) || isInt(tokens[1]))) { // tokens[1] is hex or int
-            location = passOneBSS(tokens[1]);
+        if (tokens.length == 3 && (isHex(tokens[2]) || isInt(tokens[2]))) { // tokens[1] is hex or int
+            location = passOneBSS(tokens[2]);
         } else {
             errorList.put((i+1), "Error: BSS pseudo-op on line " + (i + 1) + " invalid argument(s)");
         }
         return location;
     }
-
-    /**
-     * Equivalent - Checks what kind of equivalency is being made (label to hex,
-     * label to int, label to label, or label to register) and then makes the
-     * reference and places them into the appropriate HashMap. (labelMap for
-     * labels to int, and labels to hex. equivalencies for label to label, and
-     * label to register.)
-     * 
-     * @param tokens - Label, Register, Int, Hex
-     * @param i - location in the labels array
-     */
-    //CHANGE LOG BEGIN: 10
-    private void equ(String[] tokens, int i){
-        if (tokens.length == 2){ //EQU and Argument
-            if (isHex(tokens[1])) { //Hex for Argument
-                labelMap.put(labels[i], hexToInt(tokens[1]));
-            }
-            else if (isInt(tokens[1])){ //Int for Argument
-                labelMap.put(labels[i], Integer.parseInt(tokens[1]));
-            }
-            else if (labelMap.containsKey(tokens[1])){ //Label for Argument
-                equivalencies.put(labels[i], tokens[1]);
-            }
-            else {
-                errorList.put(i+1, "Error: EQU is mapped to non-existent label on line " + i+1);
-            }
-        }
-        else if (tokens.length <= 1){
-            String error = "Error: EQU pseudo op on line " + (i + 1) + " is missing an argument."; 
-            errorList.put((i+1), error);
-        }
-        else {
-            String error = "Error: EQU pseudo op on line" + (i + 1) + " has to many arguments.";
-            errorList.put((i+1), error);
-        }
-    }
-    //CHANGE LOG END: 10
 
     /**
      *
@@ -892,14 +906,6 @@ public class Assembler {
                 errorList.put((lineWithError), "Error: Forward Reference undefined - " + equValue + " on line " + lineWithError);
             }
         }
-        
-        for (String equValue : equivalencies.values()) {
-            System.out.println("See Me: " + equValue);
-            if (!labelMap.containsKey(equValue) && !equValue.matches("[Rr][0-9A-Fa-f]|RSP|RBP")) {
-                System.out.println("ERROR");
-                errorList.put((1001), "Error: Forward Reference undefined - " + equValue);
-            }
-        }
     }
 
     /**
@@ -909,9 +915,9 @@ public class Assembler {
      * @param line - Line number of the Operation
      * @return - A String equValue containing the Op-Code of the operation
      */
-    private String generateByteCode(String operation, int line) {
+    private String generateByteCode(String[] tokens, int line) {
         // \\s+ means any amount of whitespace
-        String[] tokens = operation.split("\\s+", 2); //split opcode from args
+        //String[] tokens = operation.split("\\s+", 2); //split opcode from args
         String op = tokens[0].toUpperCase();
         
         if (isOperation(op)) { //valid Operation
@@ -1674,7 +1680,7 @@ public class Assembler {
      * @param labels
      * @param codes
      */
-    public void printContent(String[] labels, String[] codes) {        
+    public void printContent() {        
         System.out.println("\nPrinting through Label map");
         for (String key: labelMap.keySet()){
             System.out.println(key + " : " + intToHex(Integer.toString(labelMap.get(key))));
