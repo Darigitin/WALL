@@ -336,7 +336,7 @@
                           PUSH  R5<br>
                           CALL  sumIntR    # recursive call<br>
                                            # return to next instruction<br>
-                          ADD   RSP,RSP,R1 # bump stack pointer to move past parameter<br>
+                          ADD   RSP,RSP,R1 # Restore SP to state before Call<br>
                           RLOAD R5,2[RBP]  # fetch this frame's parameter N<br>
                 <br>
                           ADD   RA,RA,R5   # Calculate N + sumInt( N - 1 )<br>
@@ -359,7 +359,7 @@
                           PUSH R2 <br>
                           CALL sumIntR<br>
                 <br>
-                          ADD   RSP,RSP,R1 # clean up operand from stack<br>
+                          ADD   RSP,RSP,R1 # Restore SP to state before Call<br>
                           STORE [RESULT],RA<br>
                 <br>
                           HALT<br>
