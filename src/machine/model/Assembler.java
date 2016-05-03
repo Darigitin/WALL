@@ -633,7 +633,8 @@ public class Assembler {
     private void storeSIP(String[] tokens, int i) {
         if (tokens.length == 2) {
             if (isHex(tokens[1])) {
-                SIP = tokens[1].substring(2, 4);
+                SIP = handleHex(tokens[1], i);
+                //SIP = tokens[1].substring(2, 4);
             } 
             else if (isInt(tokens[1])) {
                 SIP = intToHex((tokens[1]));
@@ -918,7 +919,8 @@ public class Assembler {
             result = register + intToHex(Integer.toString(labelMap.get(ref)));
         }
         else if (isHex(address)) {
-            result = register + address.substring(2, 4);
+            result = register + handleHex(address, line);
+            //result = register + address.substring(2, 4);
         } 
         else if (isInt(address)) {
             result = register + intToHex(address);
@@ -1108,7 +1110,8 @@ public class Assembler {
             result = intToHex(firstArg);
         } 
         else if (isHex(firstArg)) { // arg is hex
-            result = firstArg.substring(2, 4); //TODO: Handle FORAMT 0xH and 0xHH
+            result = handleHex(firstArg, line);
+            //result = firstArg.substring(2, 4); //TODO: Handle FORAMT 0xH and 0xHH
         }
         else {
             errorList.add("Error: Invalid destination for " + op + " on line " + line);
@@ -1181,7 +1184,6 @@ public class Assembler {
         String result = "000"; //CHANGE LOG: 21
         String tokens[];
         if (secondArg.matches(".+\\[.+\\]")){
-            //System.out.println("****************************************THE REGEX WORKS MOTHERFUCKER!!!!");
             tokens = secondArg.split("\\[|\\]"); //tokens[0]=offset, tokens[1]= reg]
             result = imDRegFormat(op, tokens[0], firstArg, tokens[1], line);
             return result;
@@ -1449,6 +1451,27 @@ public class Assembler {
             }
         }
         return false;
+    }
+    
+    /**
+     * Resolves Hex in both the OxH and the OxHH format
+     * 
+     * @param hex - hex value with the Ox or OX appended to it.
+     * @param lineNumber
+     * @return - a hex number of two hex digits
+     */
+    private String handleHex(String hex, int lineNumber) {
+        System.out.println(hex);
+        if (hex.length() == 4) {
+            return hex.substring(2, 4);
+        }
+        else if (hex.length() == 3) {
+            return "0" + hex.substring(2, 3);
+        }
+        else {
+            errorLines.put(lineNumber, "Error: Invalid hex on line " + lineNumber);
+            return "00";
+        }
     }
 
     /**
