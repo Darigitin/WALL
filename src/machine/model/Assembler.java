@@ -257,68 +257,89 @@ public class Assembler {
     private void pass1(String text) {
         String[] lines = text.split("\n");
 	int lineCount = lines.length;
-	String[] tokens;
+	String[] label, tokens;
 	codes = new String[lineCount];
         boolean validLabel;
-        String operation;
+        String op;
 
 	stripComments(lines, lineCount);
 
 	int currentLocation = 0;
+        System.out.println("PASS ONE: ");
 	for (int i = 0; i < lineCount; i++) {
+            //System.out.println("Does it have a label: " + codes[i].contains(":"));
+            //System.out.println(codes[i]);
             if (codes[i].contains(":")) { //Line has a label
-                tokens = codes[i].split(":[\\s+]*|\\s+"); //parseLabel[0] = label
-                validLabel = isValidLabel(tokens[0]);
-                if (validLabel && tokens.length > 1) {
-                    operation = tokens[1].toUpperCase();
-                    if (operation.equals(PSEUDOOPS[2])) { //BSS
-                        labelMap.put(tokens[0], currentLocation);
-                        currentLocation += bssLocation(tokens, i);
-                    }
-                    else if (operation.equals(PSEUDOOPS[3])) { //DB
-                        labelMap.put(tokens[0], currentLocation);
-                        referenceLine.put(tokens[0], "");
-                        currentLocation += dbOneLocation(tokens, i);
-                    }
-                    else if (operation.equals(PSEUDOOPS[4])) { //EQU
-                        equ(tokens, i); //currentLocation unaffected
-                    }
-                    else if (isOperation(operation)) {
-                        labelMap.put(tokens[0], currentLocation);
-                        referenceLine.put(tokens[0], "");
+                label = codes[i].split(":.*"); //tokens[0] = label
+                //Get rid of label, then split spaces to get tokens[0] = Mneumonic, tokens[1] = operand
+                tokens = codes[i].replaceFirst(".+:\\s*", "").split("\\s+", 2);
+                //System.out.println("Label: " + Arrays.toString(label) + " Tokens: " + Arrays.toString(tokens) + " Length: " + tokens.length);
+                validLabel = isValidLabel(label[0]);
+                if (validLabel && tokens.length > 1) { //label and operation/pseudo-op
+                    if (isOperation(tokens[0])) {
+                        labelMap.put(label[0], currentLocation);
+                        referenceLine.put(label[0], "");
                         currentLocation += 2;
                     }
-                    else { //Pseudo-Op, or Operation
-                        errorList.put((i+1), "Error: " + operation + " - Invalid label or Invalid Operation/Pseudo-Op on line " + (i+1));
+                    else if (isPseudoOp(tokens[0])) {
+                        switch (tokens[0].toUpperCase()) {
+                            case "BSS":
+                                labelMap.put(label[0], currentLocation);
+                                currentLocation += bssLocation(tokens, i);
+                                break;
+                            case "DB":
+                                labelMap.put(label[0], currentLocation);
+                                referenceLine.put(label[0], "");
+                                currentLocation += dbOneLocation(tokens, i);
+                                break;
+                            case "EQU":
+                                equ(label[0], tokens, i); //currentLocation unaffected
+                                break;
+                            default: //SIP, ORG
+                                errorList.put((i+1), "Error: " + tokens[0].toUpperCase() + " on line " + (i+1) + " does not use a label.");
+                                break;
+                        }
+                    } 
+                    else { //Invalid label with Pseudo-Op or Operation
+                        errorList.put((i+1), "Error: " + tokens[0].toUpperCase() + " - Invalid label/Operation/Pseudo-Op on line " + (i+1));
                     }
                 }
                 else if (validLabel) { //Label with nothing following
-                    labelMap.put(tokens[0], currentLocation);
-                    referenceLine.put(tokens[0], "");
+                    labelMap.put(label[0], currentLocation);
+                    referenceLine.put(label[0], "");
                 }
                 else { //Invalid Label
-                    errorList.put((i+1), "Error: Invalid label " + tokens[0] + " on line " + (i+1));
+                    errorList.put((i+1), "Error: Invalid label " + label[0] + " on line " + (i+1));
                 }
             }
             else { //No label
-                tokens = codes[i].split("\\s+"); //split line w/o label on spaces
-                System.out.println(Arrays.toString(tokens));
+                tokens = codes[i].split("\\s+", 2); //split line w/o label, on spaces
+                //System.out.println("             Tokens:" + Arrays.toString(tokens) + " Length: " + tokens.length);
                 if (tokens.length > 1) { //non-blank line
-                    operation = tokens[0].toUpperCase();
+                    op = tokens[0].toUpperCase();
                     if (isOperation(tokens[0])) {
                         currentLocation += 2;
                     }
-                    else if (operation.equals(PSEUDOOPS[1])) { //ORG
-                        currentLocation = orgLocation(tokens, i);	
-                    }
-                    else if (operation.equals(PSEUDOOPS[3])) { //DB
-                        currentLocation += dbOneLocation(tokens, i);
-                    }
-                    else if (operation.equals(PSEUDOOPS[0])) { //SIP
-                        //Do Nothing
+                    else if (isPseudoOp(tokens[0])) {
+                        switch (tokens[0].toUpperCase()) {
+                            case "ORG":
+                                currentLocation = orgLocation(tokens, i);
+                                break;
+                            case "BSS":
+                                currentLocation += bssLocation(tokens, i);
+                                break;
+                            case "DB":
+                                currentLocation += dbOneLocation(tokens, i);
+                                break;
+                            case "EQU":
+                                errorList.put((i+1), "Error: EQU missing a label on line " + (i+1));
+                                break;
+                            default: //SIP
+                                break;
+                        }
                     }
                     else { //Invalid Operation or Pseudo-Op
-                        errorList.put((i+1), "Error: Invalid Operation/Pseudo-Op " + operation + " on line " + (i+1));
+                        errorList.put((i+1), "Error: Invalid Operation/Pseudo-Op " + op + " on line " + (i+1));
                     }
                 }
             }
@@ -337,41 +358,33 @@ public class Assembler {
         
         System.out.println("PassTwo");
         for (int i = 0; i < codes.length; i++) { 
-            //tokens = codes[i].split(":[\\s+]*|\\s+");
-            if (codes[i].contains(":")) {
-                label = codes[i].split(":.*|\\s+");
-            }
-            else {
-                label = null;
-            }
-            tokens = codes[i].split("\\s+.*:\\s*|\\s+|.*:");
-            System.out.println(Arrays.toString(label) + " " + Arrays.toString(tokens));
+            tokens = codes[i].replaceFirst(".+:\\s*", "").split("\\s+", 2);
+//            tokens = codes[i].split("\\s+.*:\\s*|\\s+|.*:");
             if (tokens.length > 1) { //A non-blank line with or without a label
-                if (isPseudoOp(tokens[0])) {
-                    switch(tokens[0]) { //if a Pseudo-Op
-                        case "org":
+                if (isPseudoOp(tokens[0].toUpperCase())) {
+                    switch(tokens[0].toUpperCase()) { //if a Pseudo-Op
+                        case "ORG":
                             currentLocation = orgLocation(tokens, i);
                             break;
-                        case "db":
+                        case "DB":
                             Location[i] = intToHex(Integer.toString(currentLocation));
-                            currentLocation += dbTwoLocation(codes[i], i, currentLocation, i+1);
+                            //currentLocation += dbTwoLocation(tokens[1], i, currentLocation, i+1);
+                            currentLocation += passTwoDB(tokens[1], currentLocation, i);
                             Object_code[i] = DBcode;
-                        case "bss":
+                        case "BSS":
                             Location[i] = intToHex(Integer.toString(currentLocation));
                             currentLocation += bssLocation(tokens, i);
                             break;
-                        case "sip":
+                        case "SIP":
                             storeSIP(tokens, i);
                             break;
-                        case "equ":
+                        case "EQU":
+                            break;
+                        default: //Superfluous
                             break;
                     }
                 }
                 else if (isOperation(tokens[0])) {
-                    if (label != null) {
-                        currentLocation = labelMap.get(label[0]);
-                        Location[i] = intToHex(Integer.toString(currentLocation));
-                    }
                     if (!errorList.containsKey(i+1)) { //No Invalid Arguments
                         bytes = generateByteCode(tokens, i + 1);
                     }
@@ -381,6 +394,8 @@ public class Assembler {
                     currentLocation += byteCodeInTemp(bytes, currentLocation, i);
                     //get Object Code for Assembler Listing
                     StringBuilder bytesInMemory = new StringBuilder(bytes);
+                    System.out.println(bytesInMemory);
+                    System.out.println(bytesInMemory.length());
                     if (bytesInMemory.length() > 5){
                         bytesInMemory.insert (2, " ").toString();
                         bytesInMemory.insert (5, " ").toString();
@@ -424,20 +439,20 @@ public class Assembler {
      * @param i - location in the labels array
      */
     //CHANGE LOG BEGIN: 10
-    private void equ(String[] tokens, int i){
-        if (tokens.length == 3){ //Label, EQU, and Argument
-            if (isHex(tokens[2])) { //Hex for an Argument
-                labelMap.put(tokens[0], hexToInt(tokens[2]));
+    private void equ(String label, String[] tokens, int i){
+        if (tokens.length == 2){ //Label, EQU, and Argument
+            if (isHex(tokens[1])) { //Hex for an Argument
+                labelMap.put(label, hexToInt(tokens[1]));
             }
-            else if (isInt(tokens[2])){ //Int for an Argument
-                labelMap.put(tokens[0], Integer.parseInt(tokens[2]));
+            else if (isInt(tokens[1])){ //Int for an Argument
+                labelMap.put(label, Integer.parseInt(tokens[1]));
             }
             else { //Label or Register for an Argument
-                    equivalencies.put(tokens[0], tokens[2]);
-                    forwardReferences.put(tokens[0], i);
+                    equivalencies.put(label, tokens[1]);
+                    forwardReferences.put(label, i);
             }
         }
-        else if (tokens.length <= 2){
+        else if (tokens.length < 2){
             String error = "Error: EQU pseudo op on line " + (i + 1) + " is missing an argument."; 
             errorList.put((i+1), error);
         }
@@ -472,7 +487,7 @@ public class Assembler {
         for (i = 0; i < codes.length; i++) {
             tokens = codes[i].split("\\s+"); //(?=([^\"]*\"[^\"]*\")*[^\"]*$)
             //System.out.println("After \\s+ ------->" + Arrays.toString(tokens));
-            if (tokens.length > 0) { // A line with pseudo-op or operation
+            if (tokens.length > 0) { // A line with pseudo-op or tokens
                 if (tokens[0].toUpperCase().equals(PSEUDOOPS[1])) { // handle ORG pseudo-op
                     currentLocation = orgLocation(tokens, i);
                     labelMap.put(labels[i], currentLocation);
@@ -492,16 +507,16 @@ public class Assembler {
                     //System.out.println("In passOne, after dbOneLocation, currentLocation = " + currentLocation);
                 }
                 else if ((labels[i] != null) && (tokens[0].toUpperCase().equals(PSEUDOOPS[4]))) { //EQU                
-                    equ(tokens,i);
+                    //equ(tokens,i);
                 }
                 //CHANGE LOG END: 10
-                else if (labels[i] != null) { 	// we have a label on this line with operation following
+                else if (labels[i] != null) { 	// we have a label on this line with tokens following
                     labelMap.put(labels[i], currentLocation);
                     referenceLine.put(labels[i], "");
                     if (tokens[0].toUpperCase().equals(PSEUDOOPS[2])) { 	// handle BSS pseudo op
                         currentLocation += bssLocation(tokens, i);
                     }
-                    else if (tokens[0] != null && isOperation(tokens[0])) { //label found, operation following
+                    else if (tokens[0] != null && isOperation(tokens[0])) { //label found, tokens following
                         //CHANGE LOG: 24
                         currentLocation += 2;
                     }
@@ -514,7 +529,7 @@ public class Assembler {
                     errorList.put((i+1), "Error: EQU pseudo op on line " + (i + 1) + " is missing a label.");
                 }
                 //CHANGE LOG END: 10
-                else if (isOperation(tokens[0])) { 	// operation without label
+                else if (isOperation(tokens[0])) { 	// tokens without label
                     //CHANGE LOG: 24
                     currentLocation += 2;
                 }
@@ -541,7 +556,7 @@ public class Assembler {
         
         for (int i = 0; i < codes.length; i++) {
             tokens = codes[i].split("\\s+");
-            if (tokens.length > 0) { // A line with pseudo-op or operation
+            if (tokens.length > 0) { // A line with pseudo-op or tokens
                 switch (tokens[0].toUpperCase()) {
                     case "ORG":
                         // handle ORG pseudo-op
@@ -633,7 +648,7 @@ public class Assembler {
 
     /**
      * Ensures that the DB pseudo op argument conforms to standards and then returns
-     * length of the DB pseudo op argument.
+ length of the DB pseudo op argument.
      *
      * @param tokens String[] of pseudo ops
      * @return size of db pseudo op argument
@@ -666,7 +681,7 @@ public class Assembler {
 
     /**
      * Ensures that the BSS pseudo op argument conforms to standards and then returns
-     * length of the BSS pseudo op argument.
+ length of the BSS pseudo op argument.
      *
      * @param value argument of BSS pseudo op
      * @return size of BSS pseudo op argument
@@ -678,6 +693,7 @@ public class Assembler {
         } else {
             return Integer.parseInt(value);
         }
+        //TODO: Error Handling
     }
 
     /**
@@ -690,7 +706,6 @@ public class Assembler {
      */
     private int orgLocation(String[] tokens, int i) {
         int location = 0;
-        System.out.println("ORG: " + Arrays.toString(tokens));
         if (tokens.length == 2 && isHex(tokens[1])) {
             location = hexToInt(tokens[1]);
         } else { // Invalid number of arguments or argument not hex
@@ -712,9 +727,9 @@ public class Assembler {
     private int dbOneLocation(String[] tokens, int i) {
         int location = 0;
         if (tokens.length == 2) { // there must be an argument
-            errorList.put((i+1), "Error: Argument list for DB op is invalid on line " + (i + 1));
-        } else {
             location = passOneDB(tokens);
+        } else {
+            errorList.put((i+1), "Error: Argument list for DB op is invalid on line " + (i + 1));
         }
         return location;
     }
@@ -730,8 +745,8 @@ public class Assembler {
      */
     private int bssLocation(String[] tokens, int i) {
         int location = 0;
-        if (tokens.length == 3 && (isHex(tokens[2]) || isInt(tokens[2]))) { // tokens[1] is hex or int
-            location = passOneBSS(tokens[2]);
+        if (tokens.length == 2 && (isHex(tokens[1]) || isInt(tokens[1]))) { // tokens[1] is hex or int
+            location = passOneBSS(tokens[1]);
         } else {
             errorList.put((i+1), "Error: BSS pseudo-op on line " + (i + 1) + " invalid argument(s)");
         }
@@ -772,6 +787,7 @@ public class Assembler {
      */
     private int dbTwoLocation(String dbString, int i, int currentLocation, int lineNum) {
         int location = 0;
+        System.out.println(dbString);
         if (dbString.split("\\s+").length == 1) { // there must be an argument
             errorList.put((i+1), "Error: DB pseudo op argument list is invalid on line " + (i + 1));
         } else {
@@ -798,6 +814,7 @@ public class Assembler {
         Matcher matcher = Pattern.compile(regExPattern).matcher(dbString);
         while (matcher.find()) {
             temp += dbString.substring(matcher.start(), matcher.end());
+            System.out.println(temp);
         }
         if (temp.matches("[\"]{1}[^\"]*[\"]{1}") || temp.matches("[\']{1}[^\']*[\']{1}")) {
             result = temp.length() - 1;
@@ -909,15 +926,15 @@ public class Assembler {
     }
 
     /**
-     * Takes an the the mnemonic operation and converts it into its byteCode format.
+     * Takes an the the mnemonic tokens and converts it into its byteCode format.
      * 
      * @param operation - Operation Name and Operands
      * @param line - Line number of the Operation
-     * @return - A String equValue containing the Op-Code of the operation
+     * @return - A String equValue containing the Op-Code of the tokens
      */
     private String generateByteCode(String[] tokens, int line) {
         // \\s+ means any amount of whitespace
-        //String[] tokens = operation.split("\\s+", 2); //split opcode from args
+        //String[] tokens = tokens.split("\\s+", 2); //split opcode from args
         String op = tokens[0].toUpperCase();
         
         if (isOperation(op)) { //valid Operation
@@ -1112,7 +1129,7 @@ public class Assembler {
      * @param op - ROR, ROL, SRA, SRL, SL
      * @param firstArg - Destination/Source Register 
      * @param secondArg - Number of Bits to manipulate (range 0 <= n < 9)
-     * @param line - Line number of the operation
+     * @param line - Line number of the tokens
      * @return - the bottom Byte of the Op-Code 
      */
     //CHANGE LOG BEGIN: 32
@@ -1251,7 +1268,7 @@ public class Assembler {
      * 
      * @param op - CALL, RET, SCALL, JMP
      * @param firstArg - Address/Label
-     * @param line - Line number of the operation
+     * @param line - Line number of the tokens
      * @return - the second byte of the Op-Code 
      */
     //CHANGE LOG BEGIN: 33
@@ -1519,7 +1536,7 @@ public class Assembler {
      * Helper Method to ensure that a label is both unique and follows the valid
      * label format (underscores and alpha-numeric characters). 
      * Invalid Characters: Spaces, only numeric, only hex values, register names
-     *                     and operation mnemonics.
+                     and tokens mnemonics.
      *
      * @param labels
      * @param token
@@ -1533,7 +1550,7 @@ public class Assembler {
             }
             //for (String label : labels) {
             for (String label : labelMap.keySet()) {
-                //if label is already used, or is an operation or pseudo-op mnemonic
+                //if label is already used, or is an tokens or pseudo-op mnemonic
                 if (label != null && label.equals(token)) {
                     return false;
                 }
@@ -1665,8 +1682,8 @@ public class Assembler {
     private boolean isOperation(String token) {
         return OPERATIONMAP.containsKey(token.toUpperCase()); //CHANGE LOG: 41
         
-//        for (String operation : OPERATIONS) {
-//            if (operation.equals(token.toUpperCase())) {
+//        for (String tokens : OPERATIONS) {
+//            if (tokens.equals(token.toUpperCase())) {
 //                return true;
 //            }
 //        }
