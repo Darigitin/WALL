@@ -196,9 +196,9 @@ public class Assembler {
     private final HashMap<String, Integer> labelMap; //labels mapped to addrs.
     private HashMap<String, String> equivalencies; //CHANGE LOG: 10 - labels mapped to labels/Registers
     private final HashMap<String, String> referenceLine;//line number(s) for referenced label
-    private final HashMap<Integer, String> errorList;//line number(s) for referenced label
+    private final HashMap<Integer, String> errorMap;//line number(s) for referenced label
     private final HashMap<String, String> unresolveLtLReferences; //Marks all invalid Label to Label references
-    private String[] codes, labels, tempMem; 
+    private String[] codes, tempMem; 
     private String Location[], Object_code[];
     private String DBcode = "";
     private String SIP = "00";
@@ -217,7 +217,7 @@ public class Assembler {
         this.equivalencies = new HashMap<>(256);
         this.equivalencies = new HashMap<>(256);
         this.referenceLine = new HashMap<>(256);
-        this.errorList = new HashMap<>(256);
+        this.errorMap = new HashMap<>(256);
         this.unresolveLtLReferences = new HashMap<>(256);
 
         // initialize tempMem
@@ -234,10 +234,10 @@ public class Assembler {
      * @return assembled byte code
      */
     public ArrayList<String> parse(String text) {
-        passOne(text);
-        passTwo();
+        pass1(text);
+        pass2();
        
-        if (errorList.isEmpty()) {
+        if (errorMap.isEmpty()) {
             controller.setEditorErrorVisible(false);
         }
         else {
@@ -254,7 +254,7 @@ public class Assembler {
      * assembly code
      */
     private void displayErrors() {
-        controller.setEditorErrors(errorList);
+        controller.setEditorErrors(errorMap);
         controller.setEditorErrorVisible(true);
     }
     
@@ -262,7 +262,7 @@ public class Assembler {
      * 
      * @param text 
      */
-    private void passOne(String text) {
+    private void pass1(String text) {
         String[] lines = text.split("\n");
 	int lineCount = lines.length;
 	String[] label, tokens;
@@ -300,7 +300,7 @@ public class Assembler {
                                 passOneEQU(label[0], tokens, i); //currentLocation unaffected
                                 break;
                             default: //SIP, ORG
-                                errorList.put((i+1), "Error: " + tokens[0].toUpperCase() + " on line " + (i+1) + " does not use a label.");
+                                errorMap.put((i+1), "Error: " + tokens[0].toUpperCase() + " on line " + (i+1) + " does not use a label.");
                                 break;
                         }    
                     }
@@ -309,11 +309,11 @@ public class Assembler {
                         referenceLine.put(label[0], "");
                     }
                     else { //Invalid Operation/Pseudo-op/Missing Operand
-                        errorList.put((i+1), "Error: " + tokens[0].toUpperCase() + " - Invalid Operation/Pseudo-Op on line " + (i+1));
+                        errorMap.put((i+1), "Error: " + tokens[0].toUpperCase() + " - Invalid Operation/Pseudo-Op on line " + (i+1));
                     }
                 }
                 else { //Invalid Label
-                    errorList.put((i+1), "Error: Invalid label " + label[0] + " on line " + (i+1));
+                    errorMap.put((i+1), "Error: Invalid label " + label[0] + " on line " + (i+1));
                 }
             }
             else { //No label
@@ -336,14 +336,14 @@ public class Assembler {
                                 currentLocation += dbOneLocation(tokens, i);
                                 break;
                             case "EQU":
-                                errorList.put((i+1), "Error: EQU missing a label on line " + (i+1));
+                                errorMap.put((i+1), "Error: EQU missing a label on line " + (i+1));
                                 break;
                             default: //SIP
                                 break;
                         }
                     }
                     else { //Invalid Operation or Pseudo-Op
-                        errorList.put((i+1), "Error: Invalid Operation/Pseudo-Op " + op + " on line " + (i+1));
+                        errorMap.put((i+1), "Error: Invalid Operation/Pseudo-Op " + op + " on line " + (i+1));
                     }
                 }
             }
@@ -354,14 +354,14 @@ public class Assembler {
     /**
      * 
      */
-    private void passTwo() {
+    private void pass2() {
         int currentLocation = 0;
         String[] tokens;
         String bytes;
         Location = new String[codes.length];
         Object_code = new String[codes.length];
         
-        System.out.println("PassTwo");
+        //System.out.println("PassTwo");
         for (int i = 0; i < codes.length; i++) { 
             tokens = codes[i].replaceFirst(".+:\\s*", "").split("\\s+", 2);
             if (tokens.length >= 1 && !tokens[0].equals("")) {
@@ -403,7 +403,7 @@ public class Assembler {
                     }
                 }
                 else {
-                    errorList.put(i+1, "Error: Some uncaught error on line " + (i+1));
+                    errorMap.put(i+1, "Error: Some uncaught error on line " + (i+1));
                 }
             }
         }
@@ -438,12 +438,12 @@ public class Assembler {
                 equivalencies.put(label, tokens[1]);
             }
             else { //Label or Register for an Argument
-                errorList.put((i+1), "Error: EQU Pseudo-Op on line " + (i+1) + " has an invalid argument.");
+                errorMap.put((i+1), "Error: EQU Pseudo-Op on line " + (i+1) + " has an invalid argument.");
             }
         }
         else {
             String error = "Error: EQU pseudo op on line" + (i + 1) + " has to many arguments.";
-            errorList.put((i+1), error);
+            errorMap.put((i+1), error);
         }
     }
     //CHANGE LOG END: 10
@@ -469,7 +469,7 @@ public class Assembler {
         }
         // is the argument a string?
         if (temp.matches("[\"]{1}.*[\"]{1}") || temp.matches("[\']{1}.*[\']{1}")) {
-            //-2 for both the beginning and ending " char. See passTwo
+            //-2 for both the beginning and ending " char. See pass2
             result = temp.length() - 2; //CHANGE LOG: 2
             //System.out.println("In passOneDB, length of string is: " + result);
         } else { // not a string, split on ,
@@ -509,7 +509,7 @@ public class Assembler {
         if (tokens.length == 2 && isHex(tokens[1])) {
             location = hexToInt(tokens[1]);
         } else { // Invalid number of arguments or argument not hex
-            errorList.put((i+1), "Error: invalid argument to ORG found on line " + (i + 1));
+            errorMap.put((i+1), "Error: invalid argument to ORG found on line " + (i + 1));
         }
         return location;
     }
@@ -529,7 +529,7 @@ public class Assembler {
         if (tokens.length == 2) { // there must be an argument
             location = passOneDB(tokens);
         } else {
-            errorList.put((i+1), "Error: Argument list for DB op is invalid on line " + (i + 1));
+            errorMap.put((i+1), "Error: Argument list for DB op is invalid on line " + (i + 1));
         }
         return location;
     }
@@ -548,7 +548,7 @@ public class Assembler {
         if (tokens.length == 2 && (isHex(tokens[1]) || isInt(tokens[1]))) { // tokens[1] is hex or int
             location = passOneBSS(tokens[1]);
         } else {
-            errorList.put((i+1), "Error: BSS pseudo-op on line " + (i + 1) + " invalid argument(s)");
+            errorMap.put((i+1), "Error: BSS pseudo-op on line " + (i + 1) + " invalid argument(s)");
         }
         return location;
     }
@@ -575,7 +575,7 @@ public class Assembler {
             }
             //CHANGE LOG END: 10
         } else {
-            errorList.put((i+1), "Error: SIP psuedo-op on line " + (i + 1) + "invalid argument");
+            errorMap.put((i+1), "Error: SIP psuedo-op on line " + (i + 1) + "invalid argument");
         }
     }
 
@@ -589,7 +589,7 @@ public class Assembler {
         int location = 0;
         System.out.println(dbString);
         if (dbString.split("\\s+").length == 1) { // there must be an argument
-            errorList.put((i+1), "Error: DB pseudo op argument list is invalid on line " + (i + 1));
+            errorMap.put((i+1), "Error: DB pseudo op argument list is invalid on line " + (i + 1));
         } else {
             location = passTwoDB(dbString, currentLocation, lineNum);
         }
@@ -631,7 +631,7 @@ public class Assembler {
                 }
             }
             else {
-                errorList.put((lineNum), "Invalid db parameter \"" + arg + "\" found on line " + lineNum);
+                errorMap.put((lineNum), "Invalid db parameter \"" + arg + "\" found on line " + lineNum);
             }
         }
         return result;
@@ -746,7 +746,7 @@ public class Assembler {
                     }//end if
                 }//end else if
                 else { //To many Arguments
-                    errorList.put((line), "Error: To many arguments on line " + line);
+                    errorMap.put((line), "Error: To many arguments on line " + line);
                 }//end else
                     
             }//end if
@@ -759,12 +759,12 @@ public class Assembler {
                     return OPERATIONMAP.get(op) + "01";
                 }//end else if
                 else { //Valid Op with Missing Arguments
-                    errorList.put((line), "Error: Missing Arguments for " + op + " on line " + line);
+                    errorMap.put((line), "Error: Missing Arguments for " + op + " on line " + line);
                 }//end else
             }//end else
         }//end if
         else { //Invalid Operation
-            errorList.put((line), "Error: Invalid Operation " + op + " on line " + line);
+            errorMap.put((line), "Error: Invalid Operation " + op + " on line " + line);
         }//end else
                     return "0000";
     }
@@ -853,7 +853,7 @@ public class Assembler {
         }
         else if (equivalencies.containsKey(address)) {
             if (unresolveLtLReferences.containsKey(address)) {
-                errorList.put(line, "Error: " + address + " - forward Reference - " + 
+                errorMap.put(line, "Error: " + address + " - forward Reference - " + 
                         unresolveLtLReferences.get(address) + " - does not exist. Referenced on line " + line);
             }
             else {
@@ -868,7 +868,7 @@ public class Assembler {
             result = register + intToHex(address);
         } 
         else {
-            errorList.put((line), "Error: " + op + " operation on line " + line + 
+            errorMap.put((line), "Error: " + op + " operation on line " + line + 
                     " has invalid arguments.");
         }
         
@@ -926,7 +926,7 @@ public class Assembler {
             
         }
         if (errorFlag) {
-            errorList.put((line), "Error: " + op + " operation on line " + line +
+            errorMap.put((line), "Error: " + op + " operation on line " + line +
                             " has invalid arguments.");
         }
         
@@ -1007,7 +1007,7 @@ public class Assembler {
         }
         
         if (errorFlag) {
-            errorList.put((line), "Error: Invalid offset for " + op + " found on line " + line);
+            errorMap.put((line), "Error: Invalid offset for " + op + " found on line " + line);
             return result;
         }
         
@@ -1039,7 +1039,7 @@ public class Assembler {
                 result = intToHex(Integer.toString(labelMap.get(ref)));
             }
             else {
-                errorList.put((line), "Error: Invalid Destination for " + op + " on line " + line);
+                errorMap.put((line), "Error: Invalid Destination for " + op + " on line " + line);
             }
         }
         else if (isInt(firstArg)) { // arg is decimal
@@ -1049,7 +1049,7 @@ public class Assembler {
             result = firstArg.substring(2, 4);
         }
         else {
-            errorList.put((line), "Error: Invalid destination for " + op + " on line " + line);
+            errorMap.put((line), "Error: Invalid destination for " + op + " on line " + line);
         }
         
         return result;
@@ -1099,7 +1099,7 @@ public class Assembler {
             result = regImFormat(op, secondArg, firstArg, line);
         }
         else {
-            errorList.put((line), "Error: Invalid Syntax for " + op + " on line " + line);
+            errorMap.put((line), "Error: Invalid Syntax for " + op + " on line " + line);
         } 
         return result;
     }
@@ -1128,7 +1128,7 @@ public class Assembler {
            return result;
         }
         else {
-            errorList.put((line), "Error: Invalid Syntax for " + op + " on line " + line);
+            errorMap.put((line), "Error: Invalid Syntax for " + op + " on line " + line);
             return result;
         }
     }
@@ -1157,7 +1157,7 @@ public class Assembler {
             result = intToHex(Integer.toString(labelMap.get(ref) + 1));
         }
         else {
-            errorList.put((line), "Error: Invalid Syntax for " + op + " on line " + line);
+            errorMap.put((line), "Error: Invalid Syntax for " + op + " on line " + line);
         }
         
         return result;
@@ -1182,7 +1182,7 @@ public class Assembler {
                 result = regImFormat(op, first[0], secondArg, line);
             }
             else {
-                errorList.put((line), "Invalid Operator for " + op + " on line " + line);
+                errorMap.put((line), "Invalid Operator for " + op + " on line " + line);
             }
         }            
         return result;
@@ -1205,7 +1205,7 @@ public class Assembler {
             result = dRegFormat(op, firstArg, tokens[1], line); //CHANGE LOG: 34
         } 
         else {
-            errorList.put((line), "Error: ILOAD operation on line " + line
+            errorMap.put((line), "Error: ILOAD operation on line " + line
                 + " has invalid arguments.");
         }
         return result;
@@ -1231,7 +1231,7 @@ public class Assembler {
             result = dRegFormat(op, tokens[1], secondArg, line); //CHANGE LOG: 34
         } 
         else {
-            errorList.put((line), "Error: ISTORE operation on line " + line
+            errorMap.put((line), "Error: ISTORE operation on line " + line
                 + " has invalid arguments.");
         }
         return result;
@@ -1271,7 +1271,7 @@ public class Assembler {
             
             return register.substring(1);
         }       
-        errorList.put((line), "Error: Invalid register for " + op + " on line " + line);
+        errorMap.put((line), "Error: Invalid register for " + op + " on line " + line);
         return "0";
     }
     /**
@@ -1558,8 +1558,8 @@ public class Assembler {
             output.println("\n");
             output.println("Location    " + "Object Code       " + "Line   " + "Source Statement");
             for (int i = 0; i<codeList.size(); i++){
-                if(errorList.get(i) != null){     // If code line contains error, dispaly the error
-                    output.println("=========================>" + errorList.get(i));
+                if(errorMap.get(i) != null){     // If code line contains error, dispaly the error
+                    output.println("=========================>" + errorMap.get(i));
                 }
                 if ( Location[i] != null){
                     if (Object_code[i] != null){
