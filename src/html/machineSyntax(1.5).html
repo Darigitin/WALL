@@ -52,23 +52,23 @@ date/ver: 03/26/16 1.0.0
                 </li>
             </ol>
             
-            <h2>Reserved Characters and Words</h2>
-            <p> These are characters and words that are used by WALL to Parse and interpret
+            <h2>Reserved Words</h2>
+            <p> 
+                These are characters and words that are used by WALL to Parse and interpret
                 the code input into the Text Editor. Therefore using them as a label or a
                 EQU label may cause unpredictable errors in the Assembler.
+            </p>
             <ol>
-                <li>Commas(,) - to deliminate arguments</li>
-                <li>Quotations("") - used by DB to input strings into memory</li>
-                <li>Apostrophes('') - used by DB to input strings into memory</li>
-                <li>Mathematic Operators(= &lt;) - used by JMP operations</li>
                 <li>Register Names(R0-RF) - overloading these names can confuse the parser</li>
                 <li>Operation Names - overloading these names can confuse the parser</li>
                 <li>Pseudo-Op Names - overloading these names can confuse the parser</li>
             </ol>
             <h2>Valid Labels</h2>
-            <p>
-                A Valid label in wall consists of underscores(_) and alphanumerics.<br>
-                A label cannot be a reserved word, all numerics, or a hex value.
+            <p> 
+                A valid label consists of underscores(_) and Alphanumerics and is
+                case sensitive.<br>
+                Note: a label can not be a reserved word, all numerics, or hex values
+                indicated by "0x" or "0X".
             </p>
             <h2>WALL has 16 Registers.</h2>
             <p>
