@@ -2,110 +2,148 @@
 
 
 *************************** WALL-Listing ***********************
-Created date: 05/06/2016 07:09:47 PM
+Created date: 05/06/2016 07:11:39 PM
 
 Location    Object Code       Line   Source Statement
-                                 1   # ******************************************************************
-                                 2   # * Program:  sumIntR.txt - Test Case 1                            *
-                                 3   # *                                                                *
-                                 4   # * Purpose:  Test the CALL and RET (w/ overload) Operations       *
-                                 5   # *           Test the SCALL and SRET Operations                   *
-                                 6   # *           Test the RLOAD and ILOAD Operations                  *
-                                 7   # *           Test the EQU Pseudo-Op                               *
-                                 8   # *           Test the RSTORE and PUSH Operations                  *
-                                 9   # *           Test the JMPEQ Operation                             *
-                                10   # *                                                                *
-                                11   # * @author:  jl948836, Jordan Lescallette                         *
-                                12   # *                                                                *
-                                13   # * date/ver:  04/14/16 1.0.0                                      *
-                                14   # *            04/19/16 1.0.1                                      *
-                                15   # *                                                                *
-                                16   # * Results: RA should contain "37"                                *
-                                17   # *          The rest is just messing around mostly.               *
-                                18   # ******************************************************************
-                                19   
-                                20   # EQU Section
-                                21   compReg:    Equ    R0
-                                22   o_n_e:      eQu    1
-                                23   _zero:      eqU    0
-                                24   number:     equ    N
-                                25   ref:        equ    temp
-                                26   
-                                27   # Data Section
-                                28               org    0x80
-80          0A                  29    N:          db     10
-81                              30    Result:     bss    1
-                                31   
-                                32   # Code Section
-                                33               org    0x00
-                                34               sip    main
-                                35   
-00          64 D0               36    setUp:      push   RBP
-02          D2 DE               37                move   RBP,RSP
-04          42 3D               38    recSum:     rload  R3,2[RBP]
-06          43 2D               39                rload  R2,3[basePtr]
-08          D0 22               40                iload  R2,[R2]
-0A          B2 16               41                jmpeq  R2=compReg,skipFrwd
-0C          24 FF               42                load   R4,0xFF
-0E          52 24               43                add    R2,R2,R4
-10          32 90               44                store [temp],R2
-12          22 90               45                load   R2,ref
-14          64 20               46                push   R2
-16          B3 36               47    secNum:     jmpeq  R3=compReg,done
-18          25 FF               48                load   R5,nOne
-1A          53 35               49                add    R3,R3,R5
-1C          EF E3               50                rstore -1[RSP],R3
-1E          5E E5               51                add    RSP,RSP,R5
-20          62 04               52                scall  recSum
-                                53   
-22          21 02               54                load   R1,2
-24          51 1D               55                add    R1,R1,RBP
-26          D0 21               56                iload  R2,[R1]
-28          5A A2               57                add    RA,R10,R2
-                                58   
-2A          21 03               59                load   R1,0x03
-2C          51 1D               60                add    R1,R1,RBP
-2E          40 31               61                rload  R3,0[R1]
-30          D0 34               62                iload  R3,[R4]
-32          5B B3               63                add    RB,RB,R3
-34          63 01               64                sret
-                                65   
-36          9A AA               66    done:       xor    R10,RA,R10
-38          9B BB               67                xor    RB,RB,RB
-3A          65 D0               68                pop    RBP
-3C          61 03               69                ret    2
-                                70   
-                                71               org    0x40
-40          20 00               72    main:       load   compReg,_zero
-42          21 01               73                load   R1,o_n_e
-44          22 80               74                load   R2,N
-46          13 80               75                load   R3,[N]
-48          24 90               76                load   R4,ref
-4A          64 20               77                push   R2
-4C          64 30               78                push   R3
-4E          60 00               79                call   setUp
-                                80   
-50          3A 81               81                store  [Result],retReg
-52          21 81               82                load   R1,r
-54          E1 1B               83                rstore 1[R1],RB
-                                84   
-56          C0 00               85                halt
-                                86   
-                                87   # Data Section
-                                88               org    0x90
-90                              89    temp:       bss    1
-                                90   
-                                91   # EQU Section
-                                92   r:          equ    Result
-                                93   retReg:     equ    RA
-                                94   R10:        equ    RA
-                                95   basePtr:    equ    RBP
-                                96   skipFrwd:   equ    secNum
-                                97   nOne:       equ    0xFF
+                                 1   sip     main
+                                 2   
+                                 3   LineFeed:       EQU     0xA
+                                 4                   org     0x00
+                                 5   main:          
+00          27 01                6                    load    R7,1
+02          28 00                7                    load    R8,  0         # i
+04          26 AC                8                    load    R6,Numbers
+06          10 B7                9                    load    R0,[Length]
+                                10   mainLoop:
+08          B8 1C               11                    jmpEQ   R8=R0,endMain
+0A          D0 96               12                    iload   R9,[R6]         # Numbers[i]
+0C          64 00               13                    push    R0
+0E          64 90               14                    push    R9
+10          60 1E               15                    call    printByte
+12          65 00               16                    pop     R0
+14          2F 0A               17                    load    RF,LineFeed
+16          56 67               18                    add     R6,R6,R7
+18          58 87               19                    add     R8,R8,R7
+1A          B0 08               20                    jmp     mainLoop
+                                21   endMain:
+1C          C0 00               22                    halt
+                                23                 
+                                24                 
+                                25   printByte:
+                                26   pBaByte:        EQU     RA
+1E          64 D0               27                    push    RBP
+20          D2 DE               28                    move    RBP,RSP
+                                29                  
+22          42 AD               30                    rload   pBaByte,2[RBP]
+24          D2 2A               31                    move    R2,pBaByte
+26          A0 27               32                    ror     R2,7
+28          21 01               33                    load    R1,1
+2A          82 21               34                    and     R2,R2,R1
+2C          90 00               35                    xor     R0,R0,R0
+2E          B2 3C               36                    jmpEQ   R2=R0,pBNonNegative
+30          2F 2D               37                    load    RF,0x2D         # ASCII -
+32          D2 2A               38                    move    R2,pBaByte
+34          20 FF               39                    load    R0,0xFF
+36          92 20               40                    xor     R2,R2,R0
+38          52 21               41                    add     R2,R2,R1
+3A          D2 A2               42                    move    pBaByte,R2
+3C          64 A0               43    pBNonNegative:  push    pBaByte
+3E          60 80               44                    call    pBR
+                                45                                
+40          D2 ED               46                    move    RSP,RBP
+42          65 D0               47                    pop     RBP
+44          61 02               48                    ret     1
+                                49                  
+                                50   
+                                51   div10:
+                                52   div10q:         EQU     RA
+                                53   div10aNum:      EQU     RB
+46          64 D0               54                    push    RBP
+48          D2 DE               55                    move    RBP,RSP
+                                56                  
+4A          42 AD               57                    rload   RA,2[RBP]
+4C          D2 1A               58                    move    r1,RA
+4E          D2 2A               59                    move    r2,RA
+50          A3 11               60                    srl     R1,1
+52          A3 22               61                    srl     R2,2
+54          5A 12               62                    add     RA,R1,R2
+56          A3 A3               63                    srl     RA,3            # RA now may hold quotient
+                                64   
+58          D2 1A               65                    move    R1,RA
+5A          A4 12               66                    sl      R1,2
+5C          51 1A               67                    add     R1,R1,RA
+5E          A4 11               68                    sl      R1,1            # quotient * 10
+60          22 FF               69                    load    R2,0xFF
+62          91 12               70                    xor     R1,R1,R2        # toggle all bits
+64          22 01               71                    load    R2,1
+66          51 12               72                    add     R1,R1,R2
+68          42 BD               73                    rload   RB,2[RBP]       # argument
+6A          5B B1               74                    add     RB,RB,R1        # argument - (quotient * 10) == remainder
+6C          20 0A               75                    load    R0,10
+6E          BB 7A               76                    jmpEQ   RB=R0,div10return
+70          FB 7A               77                    jmpLT   RB<R0,div10return
+72          21 01               78                    load    R1,1
+74          5A A1               79                    add     RA,RA,R1
+76          21 F6               80                    load    R1,-10
+78          5B B1               81                    add     RB,RB,R1
+                                82   div10return:   
+                                83                  
+7A          D2 ED               84                    move    RSP,RBP
+7C          65 D0               85                    pop     RBP
+7E          61 02               86                    ret     1
+                                87                  
+                                88                  
+                                89   #def pBR( aNum ):
+                                90   #    (quotient,remainder) = div10a( aNum )
+                                91   #    if 10 <= aNum:
+                                92   #        pBR( quotient )
+                                93   
+                                94   #    digitChar = chr( remainder | 0x30 )
+                                95   #    print(digitChar, end="", flush=True)
+                                96   # end pBR  
+                                97   
+                                98                   org    0x80
+                                99   pBR:
+                               100   pBRquotient:    EQU     RA
+                               101   pBRremainder:   EQU     RB
+                               102   pBRaNum:        EQU     R3
+80          64 D0              103                    push    RBP
+82          D2 DE              104                    move    RBP,RSP
+                               105                                
+84          42 3D              106                    rload   pBRaNum,2[RBP]
+                               107                   # check for 0x80 which could be passed in
+86          20 80              108                    load    R0,0x80
+88          B3 8C              109                    jmpEQ   pBRaNum=R0,pBRnegative
+8A          B0 92              110                    jmp     pBRnormal
+                               111   pBRnegative:
+8C          2A 0C              112                    load    RA,12       # 128/10
+8E          2B 08              113                    load    RB,8        # 128 % 10
+90          B0 9A              114                    jmp     pBRcall
+                               115   
+92          64 30              116    pBRnormal:      push    pBRaNum
+94          60 46              117                    call    div10
+                               118                   # test for recursion
+96          20 0A              119                    load    R0,10
+98          F3 A2              120                    jmpLT   pBRaNum<R0,pBRdisplay
+9A          64 B0              121    pBRcall:        push    pBRremainder    #save it so we have it when we return
+9C          64 A0              122                    push    pBRquotient
+9E          60 80              123                    call    pBR
+A0          65 B0              124                    pop     pBRremainder    #recover remainder
+A2          22 30              125    pBRdisplay:     load    R2,0x30
+A4          7F B2              126                    or      RF,pBRremainder,R2
+                               127                  
+                               128   pBRreturn:                    
+A6          D2 ED              129                    move    RSP,RBP
+A8          65 D0              130                    pop     RBP
+AA          61 02              131                    ret     1
+AC          80 C1 E1 F1 F8     132    Numbers:        db      -128, -63, -31,-15, -8, 0, 3, 63, 64, 65, 0x7F
+            00 03 3F 40 41            
+            7F                        
+B7          0B                 133    Length:         db      11
 
 
 ***************** WALL Cross-Reference Listing *******************
-Created date: 05/06/2016 07:09:47 PM
+Created date: 05/06/2016 07:11:39 PM
 
 
          Cross-Reference Listing Description
@@ -118,22 +156,25 @@ Ref_line: Referenced line number(s) of a label in the source code.
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 Labels           Mem_Loc     Def_Line     Ref_line
-compReg             R0          21        41  47  72     
-o_n_e               01          22        73             
-_zero               00          23        72             
-number               N          24                       
-ref               temp          25        45  76         
-N                   80          29        74  75         
-Result              81          30        81             
-setUp               00          36        79             
-recSum              04          38        52             
-secNum              16          47                       
-done                36          66        47             
-main                40          72                       
-temp                90          89        44             
-r               Result          92        82             
-retReg              RA          93        81             
-R10                 RA          94        57  66  66     
-basePtr            RBP          95                       
-skipFrwd        secNum          96        41             
-nOne                FF          97        48             
+LineFeed            0A           3        17             
+main                00           5                       
+mainLoop            08          10        20             
+endMain             1C          21        11             
+printByte           1E          25        15             
+pBaByte             RA          26        30  31  38  42  43  
+pBNonNegative       3C          43        36             
+div10               46          51        117            
+div10q              RA          52                       
+div10aNum           RB          53                       
+div10return         7A          82        76  77         
+pBR                 80          99        44  123        
+pBRquotient         RA         100        122            
+pBRremainder        RB         101        121  124  126  
+pBRaNum             R3         102        106  116       
+pBRnegative         8C         111        109            
+pBRnormal           92         116        110            
+pBRcall             9A         121        114            
+pBRdisplay          A2         125        120            
+pBRreturn           A6         128                       
+Numbers             AC         132        8              
+Length              B7         133        9              

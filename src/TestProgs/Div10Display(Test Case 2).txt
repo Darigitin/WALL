@@ -1,0 +1,144 @@
+# ************************************************************
+# * Program: Div10 Display                                   *
+# *                                                          *
+# * Purpose: Display numbers given in a list in two's        *
+# *          complement.                                     *
+# *                                                          *
+# * @author: H. Paul Haiduk                                  *
+# *                                                          *
+# * date/ver: 05/06/16 1.0.0                                 *
+# ************************************************************                
+                sip     main
+
+LineFeed:       EQU     0xA
+                org     0x00
+main:          
+                load    R7,1
+                load    R8,  0         # i
+                load    R6,Numbers
+                load    R0,[Length]
+mainLoop:
+                jmpEQ   R8=R0,endMain
+                iload   R9,[R6]         # Numbers[i]
+                push    R0
+                push    R9
+                call    printByte
+                pop     R0
+                load    RF,LineFeed
+                add     R6,R6,R7
+                add     R8,R8,R7
+                jmp     mainLoop
+endMain:
+                halt
+              
+              
+printByte:
+pBaByte:        EQU     RA
+                push    RBP
+                move    RBP,RSP
+               
+                rload   pBaByte,2[RBP]
+                move    R2,pBaByte
+                ror     R2,7
+                load    R1,1
+                and     R2,R2,R1
+                xor     R0,R0,R0
+                jmpEQ   R2=R0,pBNonNegative
+                load    RF,0x2D         # ASCII -
+                move    R2,pBaByte
+                load    R0,0xFF
+                xor     R2,R2,R0
+                add     R2,R2,R1
+                move    pBaByte,R2
+pBNonNegative:  push    pBaByte
+                call    pBR
+                             
+                move    RSP,RBP
+                pop     RBP
+                ret     1
+               
+
+div10:
+div10q:         EQU     RA
+div10aNum:      EQU     RB
+                push    RBP
+                move    RBP,RSP
+               
+                rload   RA,2[RBP]
+                move    r1,RA
+                move    r2,RA
+                srl     R1,1
+                srl     R2,2
+                add     RA,R1,R2
+                srl     RA,3            # RA now may hold quotient
+
+                move    R1,RA
+                sl      R1,2
+                add     R1,R1,RA
+                sl      R1,1            # quotient * 10
+                load    R2,0xFF
+                xor     R1,R1,R2        # toggle all bits
+                load    R2,1
+                add     R1,R1,R2
+                rload   RB,2[RBP]       # argument
+                add     RB,RB,R1        # argument - (quotient * 10) == remainder
+                load    R0,10
+                jmpEQ   RB=R0,div10return
+                jmpLT   RB<R0,div10return
+                load    R1,1
+                add     RA,RA,R1
+                load    R1,-10
+                add     RB,RB,R1
+div10return:   
+               
+                move    RSP,RBP
+                pop     RBP
+                ret     1
+               
+               
+#def pBR( aNum ):
+#    (quotient,remainder) = div10a( aNum )
+#    if 10 <= aNum:
+#        pBR( quotient )
+
+#    digitChar = chr( remainder | 0x30 )
+#    print(digitChar, end="", flush=True)
+# end pBR  
+
+                org    0x80
+pBR:
+pBRquotient:    EQU     RA
+pBRremainder:   EQU     RB
+pBRaNum:        EQU     R3
+                push    RBP
+                move    RBP,RSP
+                             
+                rload   pBRaNum,2[RBP]
+                # check for 0x80 which could be passed in
+                load    R0,0x80
+                jmpEQ   pBRaNum=R0,pBRnegative
+                jmp     pBRnormal
+pBRnegative:
+                load    RA,12       # 128/10
+                load    RB,8        # 128 % 10
+                jmp     pBRcall
+
+pBRnormal:      push    pBRaNum
+                call    div10
+                # test for recursion
+                load    R0,10
+                jmpLT   pBRaNum<R0,pBRdisplay
+pBRcall:        push    pBRremainder    #save it so we have it when we return
+                push    pBRquotient
+                call    pBR
+                pop     pBRremainder    #recover remainder
+pBRdisplay:     load    R2,0x30
+                or      RF,pBRremainder,R2
+               
+pBRreturn:                    
+                move    RSP,RBP
+                pop     RBP
+                ret     1
+Numbers:        db      -128, -63, -31,-15, -8, 0, 3, 63, 64, 65, 0x7F
+Length:         db      11
+ 

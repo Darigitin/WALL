@@ -126,21 +126,21 @@
  * 
  * 39 gl939543 - 04/19/16: Point the error message to the error line in assembler listing if
  *                         error(s) detected. 
-<<<<<<< HEAD
+ *
  * 40 gl939543 - 04/27/16: Update the cross reference list to hold labels mapped to labels 
  *                         under EQU.
  * 41 gl939543 - 04/27/16: Update checkReferenceLabel method to hold all EQU cases.
  * 
  * 42 gl939543 - 04/27/16: Create a new method for page format when the user need to 
  *                         print out the assembler listing.
-=======
  * 
- * 40 jl948836 - 04/27/16: Added rules to what a label can be.
+ * 43 jl948836 - 04/27/16: Added rules to what a label can be.
  * 
- * 41 jl948836 - 04/28/16: Modified isOperation() to use OPERATIONMAP
+ * 44 jl948836 - 04/28/16: Modified isOperation() to use OPERATIONMAP
  * 
- * 42 jl948836 - 04/30/16: Removed invalid label from code list.
->>>>>>> reservedWords
+ * 45 jl948836 - 04/30/16: Removed invalid label from code list.
+ * 
+ * 46 jl948836 - 05/06/16: Rewrote PassOne and PassTwo
  * /
 
 /*
