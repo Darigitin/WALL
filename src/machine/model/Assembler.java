@@ -213,7 +213,6 @@ public class Assembler {
     private String DBcode = "";
     private String SIP = "00";
     private int codeLines = 1;
-    private int labelAppearsLine;
     
 
     /**
@@ -244,8 +243,8 @@ public class Assembler {
      * @return assembled byte code
      */
     public ArrayList<String> parse(String text) {
-        pass1(text);
-        pass2();
+        passOne(text);
+        passTwo();
        
         if (errorMap.isEmpty()) {
             controller.setEditorErrorVisible(false);
@@ -272,7 +271,7 @@ public class Assembler {
      * 
      * @param text 
      */
-    private void pass1(String text) {
+    private void passOne(String text) {
         String[] lines = text.split("\n");
 	int lineCount = lines.length;
 	String[] label, tokens;
@@ -299,6 +298,7 @@ public class Assembler {
                         switch (tokens[0].toUpperCase()) {
                             case "BSS":
                                 labelMap.put(label[0], currentLocation);
+                                referenceLine.put(label[0], "");
                                 currentLocation += bssLocation(tokens, i);
                                 break;
                             case "DB":
@@ -308,6 +308,7 @@ public class Assembler {
                                 break;
                             case "EQU":
                                 passOneEQU(label[0], tokens, i); //currentLocation unaffected
+                                referenceLine.put(label[0], "");
                                 break;
                             default: //SIP, ORG
                                 errorMap.put((i+1), "Error: " + tokens[0].toUpperCase() + " on line " + (i+1) + " does not use a label.");
@@ -328,7 +329,6 @@ public class Assembler {
             }
             else { //No label
                 tokens = codes[i].split("\\s+", 2); //split line w/o label, on spaces
-                System.out.println("             Tokens:" + Arrays.toString(tokens) + " Length: " + tokens.length);
                 if (!codes[i].equals("") ){//Non-Blank Line
                     op = tokens[0].toUpperCase();
                     if (isOperation(tokens[0])) {
@@ -364,7 +364,7 @@ public class Assembler {
     /**
      * 
      */
-    private void pass2() {
+    private void passTwo() {
         int currentLocation = 0;
         String[] tokens;
         String bytes;
@@ -479,7 +479,7 @@ public class Assembler {
         }
         // is the argument a string?
         if (temp.matches("[\"]{1}.*[\"]{1}") || temp.matches("[\']{1}.*[\']{1}")) {
-            //-2 for both the beginning and ending " char. See pass2
+            //-2 for both the beginning and ending " char. See passTwo
             result = temp.length() - 2; //CHANGE LOG: 2
             //System.out.println("In passOneDB, length of string is: " + result);
         } else { // not a string, split on ,
@@ -614,20 +614,13 @@ public class Assembler {
      * @return number of bytes to skip
      */
     private int passTwoDB(String dbString, int currentLocation, int lineNum) {
-        System.out.println(dbString);
         int result = 0;
-        //String temp = "";
         DBcode = "";
-        //dbString = dbString.substring(3, dbString.length());
-
+        
         String[] args = dbString.split(",\\s*");
-        System.out.println(Arrays.toString(args));
         for (String arg : args) {
-            System.out.println(arg + " " + currentLocation + " " + result);
-            System.out.println(isHex(arg) + " " + arg);
             if (isHex(arg)) { 
                 tempMem[currentLocation + result++] = Integer.toHexString(hexToInt(arg));
-                System.out.println(result);
                 DBcode += Integer.toHexString(hexToInt(arg)).toUpperCase() + " "; 
             } 
             else if (isInt(arg)) {
@@ -679,7 +672,6 @@ public class Assembler {
         String equValue;
         for (String equKey : equivalencies.keySet()) {
             equValue = equivalencies.get(equKey);
-            System.out.println("EQUKEY: " + equKey + " EQUVALUE: " + equValue);
             if (!labelMap.containsKey(equValue) && !equValue.matches("[Rr][0-9A-Fa-f]|RSP|RBP")) {
                 unresolveLtLReferences.put(equKey, equValue);
             }
@@ -789,13 +781,10 @@ public class Assembler {
      */
     private int byteCodeInTemp(String bytes, int currentLocation, int i) {
         int location;
-            tempMem[currentLocation] = bytes.substring(0, 2);// Placing Bytecode in memory
-            tempMem[currentLocation + 1] = bytes.substring(2, 4);
-            System.out.println("Code: " + codes[i] + "Currentlocation: " + intToHex(Integer.toString(currentLocation)));
-            Location[i] = intToHex(Integer.toString(currentLocation));
-            
-            location = 2;
-        /*}*/
+        tempMem[currentLocation] = bytes.substring(0, 2);// Placing Bytecode in memory
+        tempMem[currentLocation + 1] = bytes.substring(2, 4);
+        Location[i] = intToHex(Integer.toString(currentLocation));
+        location = 2;
         return location;
     }
 
@@ -858,7 +847,6 @@ public class Assembler {
         String result = "000";
         String register = getRegister(op, firstArg, line);
         String address = secondArg;
-        System.out.println("regImFormat: " + address);
         if (labelMap.containsKey(address)) {
             result = register + intToHex(Integer.toString(labelMap.get(address)));
         }
@@ -874,7 +862,6 @@ public class Assembler {
         }
         else if (isHex(address)) {
             result = register + handleHex(address, line);
-            //result = register + address.substring(2, 4);
         } 
         else if (isInt(address)) {
             result = register + intToHex(address);
@@ -1136,7 +1123,6 @@ public class Assembler {
         }
         else if (firstArg.matches(".+\\[.+\\]")) {
            tokens = firstArg.split("\\[|\\]");
-           System.out.println(Arrays.toString(tokens));
            result = imDRegFormat(op, tokens[0], tokens[1], secondArg, line);
            return result;
         }
@@ -1414,7 +1400,6 @@ public class Assembler {
      * @return - a hex number of two hex digits
      */
     private String handleHex(String hex, int lineNumber) {
-        System.out.println(hex);
         if (hex.length() == 4) {
             return hex.substring(2, 4);
         }
@@ -1675,20 +1660,22 @@ public class Assembler {
             output.println("Labels         " + "  Mem_Loc" + "     Def_Line" + "     Ref_line");
             //lineCounter += 15;
             //lineCounter = checkLineNumber(output, lineCounter);
-//            for (int i = 0; i < codeList.size(); i++){
-//                String memoryAddress;
-//                if (labels[i] != null){
-//                    if (labelMap.get(labels[i]) == null){   // check EQU for labels to labels
-//                        memoryAddress = equivalencies.get(labels[i]);
-//                    }else{
-//                        memoryAddress = intToHex(Integer.toString(labelMap.get(labels[i])));
-//                    }
-//                    output.printf("%-15s%7s%12d%8s%-15s", labels[i], memoryAddress, i+1, " ", referenceLine.get(labels[i]));
-//                    output.println();
-//                    //lineCounter++;
-//                    //lineCounter = checkLineNumber(output, lineCounter);
-//                }
-//            }//end cross reference listing
+            String[] label;
+            for (int i = 0; i < codeList.size(); i++){
+                String memoryAddress;
+                if (codes[i].contains(":")){
+                    label = codes[i].split(":.*");
+                    if (equivalencies.containsKey(label[0])){   // check EQU for labels to labels
+                        memoryAddress = equivalencies.get(label[0]);
+                    }else{
+                        memoryAddress = intToHex(Integer.toString(labelMap.get(label[0])));
+                    }
+                    output.printf("%-15s%7s%12d%8s%-15s", label[0], memoryAddress, i+1, " ", referenceLine.get(label[0]));
+                    output.println();
+                    //lineCounter++;
+                    //lineCounter = checkLineNumber(output, lineCounter);
+                }
+            }//end cross reference listing
             output.close();    //Close the file
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Assembler.class.getName()).log(Level.SEVERE, null, ex);

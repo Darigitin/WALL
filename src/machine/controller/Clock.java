@@ -143,7 +143,6 @@ public class Clock {
      */
     private void fetch() {
         String[] instructions = controller.getInstructionFromIP();
-        System.out.println(Arrays.toString(instructions));
         decode(instructions);
     }
 
@@ -178,7 +177,7 @@ public class Clock {
             if (ip > 1) {
                 ip -= 2; //current executing instruction
             }
-            System.out.println(ip);
+            //System.out.println(ip);
             controller.getFatalRunTimeErrorList().add("Invalid Instruction Decoded at "
                     + "memory address " + Integer.parseInt(Integer.toString(ip), 16));
             //Do not execute
@@ -228,6 +227,7 @@ public class Clock {
                         // regular call
                         call();
                         specialIP = true;
+                        location = secondByte;
                         break;
                     case 1:
                         // regular return
@@ -324,8 +324,9 @@ public class Clock {
         if (specialIP){
             updateInstructionPointer(location);
         }
-        else
+        else {
             updateInstructionPointer();
+        }
         updateDisassembleDisplay();
     }
     
@@ -391,7 +392,6 @@ public class Clock {
      */
     //CHANGE LOG BEGIN - 1
     private void immediateLoad(int register, int memIndex) {
-        System.out.println(memIndex);
         String memory = Integer.toHexString(memIndex);
         controller.setRegisterValue(register, memory);
         if (register == 0x0F){
@@ -781,9 +781,9 @@ public class Clock {
      */
     //CHANGE LOG: 5
     private void istore(int pointer, int register) {
-           String value = controller.getRegisterValue(register);
-           int address = Integer.parseInt(controller.getRegisterValue(pointer),16);
-           controller.setMemoryValue(address, value);
+        String value = controller.getRegisterValue(register);
+        int address = Integer.parseInt(controller.getRegisterValue(pointer),16);
+        controller.setMemoryValue(address, value);
     }
 
     /**
