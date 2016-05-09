@@ -50,6 +50,8 @@ import java.awt.Toolkit;
  *                        view.
  * 
  * 2 jl948836 - 04/26/16: Clear text Editor before loading in new source code.
+ * 
+ * 3 jl948836 - 05/06/16: Fixed Save Source file to check for split editor
  */
 public class MachineView extends javax.swing.JFrame {
 
@@ -778,8 +780,17 @@ speedComboBox.addActionListener(new java.awt.event.ActionListener() {
             
             try {
                 try (PrintWriter writer = new PrintWriter(sourceFile)) {
-                    Document doc = textEditorPanel.textEditor.getDocument();
-                    writer.print(doc.getText(0, doc.getLength()));
+                    Document doc;
+                    //CHANGE LOG BEGIN: 3
+                    if (textEditorPanel.getSplitJoinButton().getText().equals("Split Editor")) {
+                        doc = textEditorPanel.textEditor.getDocument();
+                        writer.print(doc.getText(0, doc.getLength()));
+                    }
+                    else {
+                        doc = textEditorPanel.getTextEditorFrame().getTextEditorPanel().getTextEditor().getDocument();
+                        writer.print(doc.getText(0, doc.getLength()));
+                    }
+                    //CHANGE LOG END: 3
                 }
                 
             } catch (FileNotFoundException | BadLocationException ex) {

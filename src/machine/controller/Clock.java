@@ -32,6 +32,8 @@
  * 6 jl948836 - 04/19/16: flipped RSTORE, register operands were backward.
  * 
  * 7 mv935583 - 04/25/16: Added code for tracking number of instructions executed
+ * 
+ * 8 jl948836 - 05/08/16: Fixed IP to not Increment on Halt
  */
 
 /* Change Log
@@ -324,7 +326,7 @@ public class Clock {
         if (specialIP){
             updateInstructionPointer(location);
         }
-        else {
+        else if (!"C".equals(firstNibble)) { //Not Halt CHANGE LOG: 8
             updateInstructionPointer();
         }
         updateDisassembleDisplay();
