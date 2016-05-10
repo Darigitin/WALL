@@ -46,7 +46,7 @@ public class TextEditor extends JScrollPane implements Serializable {
     private static String backGroundColorString = "WHITE";
     
     private final JTextPane textPane;
-    private final KarelDocument doc;
+    private final WALLDocument doc;
     private final TextLineNumber tln;
     
     public static final Color ERROR_COLOR = new Color(255,50,50);
@@ -69,7 +69,7 @@ public class TextEditor extends JScrollPane implements Serializable {
         verticalBar = super.getVerticalScrollBar();
         
         textPane = new JTextPane();
-        doc = new KarelDocument();
+        doc = new WALLDocument();
         textPane.setDocument(doc);
         
         super.setViewportView(textPane);
@@ -278,7 +278,7 @@ public class TextEditor extends JScrollPane implements Serializable {
     }
 
     /** Custom Document that changes all tabs to four spaces. */
-    private class KarelDocument extends DefaultStyledDocument {
+    private class WALLDocument extends DefaultStyledDocument {
         
         @Override
         public void insertString(int offs, String str, AttributeSet a) throws BadLocationException {

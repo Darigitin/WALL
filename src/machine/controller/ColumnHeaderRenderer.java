@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package machine.controller;
 
 import java.awt.Color;
@@ -33,7 +28,9 @@ public class ColumnHeaderRenderer extends DefaultTableCellRenderer {
     
    /**
     * Returns the custom table cell renderer with overridden foreground background font and border.
-    * During a printing operation, this method will be called with isSelected and hasFocus values of false to prevent selection and focus from appearing in the printed output. To do other customization based on whether or not the table is being printed, check the return value from JComponent.isPaintingForPrint().
+    * During a printing operation, this method will be called with isSelected and hasFocus values of 
+    * false to prevent selection and focus from appearing in the printed output. To do other customization 
+    * based on whether or not the table is being printed, check the return value from JComponent.isPaintingForPrint().
     *
     * @param table - the JTable \
     * @param value - the value to assign to the cell at [row, column] 

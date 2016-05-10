@@ -1,25 +1,19 @@
 /**
- * Program: Clock.java
+ * Program: Machine Controller
  * 
  * Purpose:
  * 
- * @author:
+ * @author: Ryan Ball
  * 
  * date/ver:
  */
 
-/**
- * Change Log
- * 
- * # author - date: description
- * 
- */
+package machine.controller;
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+import machine.model.Assembler;
+import java.util.ArrayList;
+import java.util.HashMap;
+import machine.view.MachineView;
 
 /** Change Log
 *    #Guojun Liu  03/08/16 
@@ -36,16 +30,6 @@
 *   
 **/
 
-package machine.controller;
-
-import machine.model.Assembler;
-import java.util.ArrayList;
-import java.util.HashMap;
-import machine.view.MachineView;
-/**
- *
- * @author Ryan Ball
- */
 public class MachineController {
         
        

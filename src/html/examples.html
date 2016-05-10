@@ -1,9 +1,4 @@
 <!DOCTYPE html>
-<!--
-To change this license header, choose License Headers in Project Properties.
-To change this template file, choose Tools | Templates
-and open the template in the editor.
--->
 <html>
     <head>
         <title>Examples</title>
@@ -13,6 +8,7 @@ and open the template in the editor.
     <body>
         <div>
             <h1>How to write Loop Structures in WALL</h1>
+            <p>*Note that you wont be able to copy and paste these program examples.</p>
             <p>
                 Just like in High-Level Languages, WALL and any other Assemblers
                 are capable of looping over a section of code until a condition is
@@ -20,49 +16,54 @@ and open the template in the editor.
                 The following two examples of how a user would write a While loop 
                 and a do While loop in WALL.
             </p>
+            <br>
             <pre>
-                # Sum of the first 10 numbers
-                # R0 is 11 since we terminate on equality.
-                # If R0 was 10, we'd get the sum of the first 9 numbers.
-                        org 0x00
-                main:   load R0,11          # Termination Condition
-                        load R1,1           # Constant 1
-                        xor  R2,R2,R2       # Load R2 with 0
-                        xor  RA,RA,RA       # Load RA with 0
-                        jmp  while
-
-                while:  jmpeq R2=R0,done    # while R2 != 0
-                        add   RA,RA,R2      #   Sum = Sum + number
-                        add   R2,R2,R1      #   number = number + 1
-                        jmp   while         
-
-                done:   halt
-            <samp>
-                Result of the Above Program
-                R10: 55
-            </samp>
+                # **********************************************************<br>
+                # * Sum of the first 10 numbers                            *<br>
+                # * R0 is 11 since we terminate on equality.               *<br>
+                # * If R0 was 10, we'd get the sum of the first 9 numbers. *<br>
+                # **********************************************************<br>
+                        org 0x00<br>
+                main:   load R0,11          # Termination Condition<br>
+                        load R1,1           # Constant 1<br>
+                        xor  R2,R2,R2       # Load R2 with 0<br>
+                        xor  RA,RA,RA       # Load RA with 0<br>
+                        jmp  while<br>
+                <br>
+                while:  jmpeq R2=R0,done    # while R2 != 0<br>
+                        add   RA,RA,R2      #   Sum = Sum + number<br>
+                        add   R2,R2,R1      #   number = number + 1<br>
+                        jmp   while<br>
+                <br>
+                done:   halt<br>
+                <br>
+                <samp>
+                    Result of the Above Program: R10: 55
+                </samp>
             </pre>
             <pre>
-                # Sum of the first 10 numbers
-                # R0 is 11 since we terminate when R2 is greater than
-                # or equal to R0.
-                # If R0 was 10, we'd get the sum of the first 9 numbers.
-                            org   0x00
-                main:       load  R0,11             # Termination Condition
-                            load  R1,1              # Constant 1
-                            xor   R2,R2,R2          # Load R2 with 0
-                            xor   RA,RA,RA          # Load RA with 0
-                            jmp   doWhile
-                
-                doWhile:    add   RA,RA,R2          # Do: Sum = Sum + number
-                            add   R2,R2,R1          #     number = number + 1
-                            jmplt R2&lt;R0,doWhile  # while R2 &lt; R0
-                
-                done:       halt
-            <samp>
-                Result of the Above Program
-                R10: 55
-            </samp>
+                # **********************************************************<br>
+                # * Sum of the first 10 numbers                            *<br>
+                # * R0 is 11 since we terminate when R2 is greater than    *<br>
+                # * or equal to R0.                                        *<br>
+                # * If R0 was 10, we'd get the sum of the first 9 numbers. *<br>
+                # **********************************************************<br>
+                            org   0x00<br>
+                main:       load  R0,11             # Termination Condition<br>
+                            load  R1,1              # Constant 1<br>
+                            xor   R2,R2,R2          # Load R2 with 0<br>
+                            xor   RA,RA,RA          # Load RA with 0<br>
+                            jmp   doWhile<br>
+                <br>
+                doWhile:    add   RA,RA,R2          # Do: Sum = Sum + number<br>
+                            add   R2,R2,R1          #     number = number + 1<br>
+                            jmplt R2&lt;R0,doWhile     # while R2 &lt; R0<br>
+                <br>
+                done:       halt<br>
+                <br>
+                <samp>
+                    Result of the Above Program: R10: 55
+                </samp>
             </pre>
             <h1>How to Iterate through an Array</h1>
             <p>
@@ -95,56 +96,273 @@ and open the template in the editor.
                 </li>
             </ol>
             <pre>
-                # Data Section
-                        org   0x60
-                Head:   db    "The Cake is a lie",0 # 0 = null termination character
-                
-                        org   0x00
-                        sip   main
-
-                main:   load  R0,0                  # check for null term. char.
-                        load  R1,1                  # constant 1
-                        load  R2,Head               # pointer to the array of chars.
-                        iload R3,[R2]               # get the value at the pointer
-                        jmp   while
-                
-                while:  jmpeq R3=R0,done            # while R3 != R0, iterate
-                        move  RF,R3                 # display character
-                        add   R2,R2,R1              # increment pointer
-                        iload R3,[R2]               # get the value at the pointer
-                        jmp   while                 # repeat
-                
-                done:   halt
-            <samp>
-                Results will display in the Display Console:
-                The Cake is a Lie
-            </samp>
+                # **********************************************<br>
+                # * Iterate through a String and display it to *<br>
+                # * the Display Console.                       *<br>
+                # **********************************************<br>
+                <br>
+                # Data Section<br>
+                        org   0x60<br>
+                Head:   db    "The Cake is a lie",0 # 0 = null termination character<br>
+                <br>
+                        org   0x00<br>
+                        sip   main<br>
+                <br>
+                main:   load  R0,0                  # check for null term. char.<br>
+                        load  R1,1                  # constant 1<br>
+                        load  R2,Head               # pointer to the array of chars.<br>
+                        iload R3,[R2]               # get the value at the pointer<br>
+                        jmp   while<br>
+                <br>
+                while:  jmpeq R3=R0,done            # while R3 != R0, iterate<br>
+                        move  RF,R3                 # display character<br>
+                        add   R2,R2,R1              # increment pointer<br>
+                        iload R3,[R2]               # get the value at the pointer<br>
+                        jmp   while                 # repeat<br>
+                <br>
+                done:   halt<br>
+                <br>
+                <samp>
+                    Results will display in the Display Console: The Cake is a Lie
+                </samp>
             </pre>
             <pre>
-                # Data Section
-                        org   0x60
-                Head:   db    "The Cake is a lie",0 # 0 = null termination character
-
-                        org   0x00
-                        sip   main
-
-                main:   load  R0,0                  # check for null term. char.
-                        load  R1,1                  # constant 1
-                        load  R2,Head               # pointer to the array of chars.
-                        iload R3,[R2]               # get the value at the pointer
-                        jmp   doWhile
-                
-                doWhile:    move  RF,R3             # do: display character
-                            add   R2,R2,R1          #     increment pointer
-                            iload R3,[R2]           #     get the value at the pointer
-                            jmpeq R3=R0,done        # while R3 != R0, iterate
-                            jmp   doWhile           # repeat
-                
-                done:       halt
-            <samp>
-                Results will display in the Display Console:
-                The Cake is a Lie
-            </samp>
+                # **********************************************<br>
+                # * Iterate through a String and display it to *<br>
+                # * the Display Console.                       *<br>
+                # **********************************************<br>
+                <br>
+                # Data Section<br>
+                        org   0x60<br>
+                Head:   db    "The Cake is a lie",0 # 0 = null termination character<br>
+                <br>
+                        org   0x00<br>
+                        sip   main<br>
+                <br>
+                main:   load  R0,0                  # check for null term. char.<br>
+                        load  R1,1                  # constant 1<br>
+                        load  R2,Head               # pointer to the array of chars.<br>
+                        iload R3,[R2]               # get the value at the pointer<br>
+                        jmp   doWhile<br>
+                <br>
+                doWhile:    move  RF,R3             # do: display character<br>
+                            add   R2,R2,R1          #     increment pointer<br>
+                            iload R3,[R2]           #     get the value at the pointer<br>
+                            jmpeq R3=R0,done        # while R3 != R0, iterate<br>
+                            jmp   doWhile           # repeat<br>
+                <br>
+                done:       halt<br>
+                <br>
+                <samp>
+                    Results will display in the Display Console: The Cake is a Lie
+                </samp>
+            </pre>
+            <h1>How to Compare Less than with Signed Numbers</h1>
+            <p>
+                The JMPLT Operation treats the arguments in R0 and RH as unsigned
+                values. This can be really useful, it can also be restraining. Luckily,
+                through a simple trick, we can get the functionality of Signed Comparison
+                with JMPLT.<br>
+                All you have to do is swap the values in the argument registers.
+                This gets you the functionality of a "greater than" comparison. So,
+                since negative numbers will all have their High-Order bit on, they
+                are naturally "larger" (in their positive sense, -1 is 255 unsigned).<br>
+                The program below displays this functionality. First it compares
+                -1 and 1, which the instruction sees as 255 &lt; 1 (obviously, 1 is
+                smaller). The second comparison is 1 to -1, which the instruction
+                sees as 1 &lt; 255 (obviously true).<br>
+                With just a bit of logical maneuvering, you can now check signed
+                numbers, or even just do a "greater than" comparison.
+            </p>
+            <br>
+            <pre>
+                # **********************************************************************<br>
+                # * Does a Less Than comparison with JMPLT and then does a Greater     *<br>
+                # * Than comparison with JMPLT (just by switching the arguments).      *<br>
+                # * The Smaller of the two values will be stored into their respective *<br>
+                # * memory addresses at location 0x70 and 0x71.                        *<br>
+                # **********************************************************************<br>
+                <br>
+                # Data Section<br>
+                            org   0x60<br>
+                Num:        db    0x01      # 1<br>
+                Neg:        db    0xFF      # -1<br>
+                            org   0x70<br>
+                SmallerLT:  bss   1         # posComp Result<br>
+                SmallerGT:  bss   1         # negComp Result<br>
+                <br>
+                            # Both the labels "main" and "posComp" point to the<br>
+                            # same memory address.<br>
+                main:<br>
+                posComp:    load  R0,[Num]<br>
+                            load  R1,1<br>
+                            load  R2,[Neg]<br>
+                            jmplt R2&lt;R0,lessThan        # if -1 &lt; 1, store -1<br>
+                            store [SmallerLT],R0        # else, store 1<br>
+                            jmp   negComp               #       -1 is greater than 1<br>
+                <br>
+                lessThan:   store [SmallerLT],R2        # Will never reach here<br>
+                <br>
+                negComp:    load  R0,[Neg]<br>
+                            load  R2,[Num]<br>
+                            jmplt R2&lt;R0,grtrThan        # if 1 &lt; -1, store -1<br>
+                            store [SmallerGT],R2        # else, store 1 - Will never reach here<br>
+                <br>
+                grtrThan:   store [SmallerGT],R0        # -1 is less than 1<br>
+                <br>
+                done:       halt<br>
+            </pre>
+            <h1>Learning Stack Discipline</h1>
+            <h4>What is the Stack?</h4>
+            <p>
+                The Stack is an abstraction that allows us to pass values to and from
+                "functions" just like we would in high level languages. Stacks are 
+                also a Last in First out Data Structure. This means that the last
+                value to be put on the Stack, will be the first value taken off the
+                Stack.
+            </p>
+            <h4>What is the Stack in WALL?</h4>
+            <p>
+                The Stack in WALL starts at memory address FF (255). This is why
+                that address is reserved by WALL. As you add values to the Stack,
+                you place them "on top" of previous values. (So, conceptually the
+                stack builds up virtically, like a stack of books, but in WALL it
+                will appear to be building horizontally).<br>
+                Note: In WALL, to go "up" the stack, you go down in memory (decreasing
+                memory addresses). To go "down" the stack, you go up in memory (increasing
+                memory addresses).
+            </p>
+            <h4>Looking at the Stack</h4>
+            <p>
+                Here we need to know how to keep track of where the Top of the Stack
+                is.To handle this, WALL has a register reserved for just pointing to the
+                top of the Stack - RE or RSP. WALL also has another register for handling
+                the Stack, called RD or RBP. RBP is to handle pointing to the base of your
+                current "Frame of Reference."
+            </p>
+            <h4>How to interact with the Stack</h4>
+            <p>
+                The main instructions for interacting with the stack in WALL are
+                PUSH, POP, CALL, RET, RLOAD, and RSTORE.<br>
+                CALL - is to allow you to enter a "fucntion" in WALL. It will preserve
+                the return address (which is the current IP), before loading its argument
+                into the IP.<br>
+                RET - allows you to return from a "function" in WALL. For RET to work,
+                the Stack Pointer (RSP) has to be pointing to the return address on the
+                stack before RET executes. Otherwise you'll go off into LaLaLand.<br>
+                RLOAD - allows you to fetch values from the stack. Used by convention
+                with the Base Pointer (RBP) not the Stack Pointer (RSP). You can grab a
+                value upto 7 addresses higher than RBP or 8 addresses lower than RBP.<br>
+                Both PUSH and POP are described fairly well in the Language Reference,
+                so they wont be re-explained here.<br>
+            </p>
+            <h4>Stack Discipline in WALL</h4>
+            <p>
+                Stack Discipline is how you maintain your Stack and how you interact
+                with it. Maintenance means that, since the Stack Pointer and Base Pointer
+                start at address FF, they should end at address FF. Interacting means
+                not Passing By Register and DEFINITELY NOT halting execution if there
+                are still Activation Records on the Stack Panel (other than MAIN).
+            </p>
+            <h4>Boiler Plate</h4>
+            <p>
+                Boiler Plate, is the set of maintenance operations that the user has
+                to do when utilizing the Stack.<br>
+            </p>
+            <h5>Entrance</h5>
+            <pre>
+                PUSH  RBP        # store old base pointer<br>
+                MOVE  RBP,RSP    # move stack pointer to base pointer<br>
+            </pre>
+            <p>
+                This is how you move your "Frame of Reference" every time you make
+                a "function" call in WALL. This is to ensure that RLOAD can "reach"
+                the arguments that were PUSHED onto the Stack.<br>
+                Note: Every "function" has its own "Frame of Reference."
+            </p>
+            <h5>Exit</h5>
+            <pre>
+                POP   RBP        # restore base pointer<br>
+                RET<br>
+            </pre>
+            <p>
+                When a function concludes, before it can return, the "Frame of Reference"
+                needs to be reset to the previous "function's" (also called the "caller").
+                Note: After you return, you'll need to clean up your Stack. This means that
+                the Stack Pointer and the Base Pointer should be the same value. There are
+                several ways to do this.<br>
+                What it comes down to, is that there needs to be as many POPs as there
+                are PUSHes on the Stack.
+            </p>
+            <h4>Example of Stack Discipline in WALL</h4>
+            <br>
+            <pre>
+                # *************************************************************************<br>
+                # * FILE:  sumIntR.txt                                                    *<br>
+                # *                                                                       *<br>
+                # * PROGRAM PURPOSE:  Main program is a driver to invoke a recursive      *<br>
+                # *                   function sumIntR that recursively calculates the    *<br>
+                # *                   sum of the first N integers                         *<br>
+                # *                                                                       *<br>
+                # * DATE:  February 15, 2016                                              *<br>
+                # *************************************************************************<br>
+                <br>
+                # Data Segment<br>
+                          ORG      0x60<br>
+                N:        DB       10<br>
+                RESULT:   BSS      1<br>
+                <br>
+                <br>
+                # *************************************************************************<br>
+                # * Function:  sumIntR                                                    *<br>
+                # * Argument:  N where N >= 0                                             *<br>
+                # * Return:    The sum (return value) is returned in RLOAD                *<br>
+                # * Assumed:   R1 contains 1                                              *<br>
+                # *            R0 contains 0                                              *<br>
+                # * Registers Used:  R4 and R5                                            *<br>
+                # *************************************************************************<br>
+                <br>
+                # Code Segment<br>          
+                          ORG      0X00<br>
+                          SIP      MAIN<br>
+                <br>
+                sumIntR:  PUSH  RBP        # store old base pointer<br>
+                          MOVE  RBP,RSP    # move stack pointer to base pointer<br>
+                <br>
+                          RLOAD R5,2[RBP]  # get argument n<br>
+                          JMPEQ R5=R0,END  # jump to end if N = 0, else...<br>
+                          LOAD  R4,0XFF    # -1 for reduction<br>
+                          ADD   R5,R5,R4   # n = n - 1<br>
+                          PUSH  R5<br>
+                          CALL  sumIntR    # recursive call<br>
+                                           # return to next instruction<br>
+                          ADD   RSP,RSP,R1 # Restore SP to state before Call<br>
+                          RLOAD R5,2[RBP]  # fetch this frame's parameter N<br>
+                <br>
+                          ADD   RA,RA,R5   # Calculate N + sumInt( N - 1 )<br>
+                <br>
+                          POP   RBP        # restore old base pointer<br>
+                          RET<br>
+                <br>
+                END:      XOR   RA,RA,RA   # this is base case return of 0<br>
+                <br>
+                          POP   RBP        # restore base pointer<br>
+                          RET<br>
+                <br>
+                # *********************************************************************<br>
+                # * MAIN:  The driver program to test the function sumIntR            *<br>
+                # *********************************************************************<br>
+                          ORG 0X30<br>
+                MAIN:     LOAD R1,1        # constant 1 defined globally<br>
+                          LOAD R0,0        # constant defined as a global comparand<br>
+                          LOAD R2,[N]<br>
+                          PUSH R2 <br>
+                          CALL sumIntR<br>
+                <br>
+                          ADD   RSP,RSP,R1 # Restore SP to state before Call<br>
+                          STORE [RESULT],RA<br>
+                <br>
+                          HALT<br>
             </pre>
         </div>
     </body>

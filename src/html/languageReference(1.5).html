@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <!--
-Program: languageReference
+Program: Language Reference
 
-Purpose: 
+Purpose: Describe the functionality of every Operation and Pseudo-Op in WALL.
+         Note: any nbsp; characters in the Operations or Pseudo-Op tables is to
+               force alignment of code, since java.Swing does not support CSS.
 
 @author: jl948836
 
@@ -39,6 +41,7 @@ date/ver: 03/26/16 1.0.0
                 Operations are actions the assembler knows how to take and are compiled
                 directly into memory.
             </p>
+            <br>
             <table id="operationsTable">
                 <thead>
                     <tr>
@@ -442,14 +445,14 @@ date/ver: 03/26/16 1.0.0
                     </tr>
                     <tr id="rstore">
                         <td>
-                            RSTORE H[RM],RN
+                            RSTORE&nbsp;H[RM],RN
                         </td>
                         <td>
                             EH MN
                         </td>
                         <td>
-                            RSTORE 0x04[R2],R1<br>
-                            Assembled: E4 21
+                            RSTORE&nbsp;0x04[R2],R1<br>
+                            Assembled => E4 21
                         </td>
                         <td>
                             Relative Store - stores the value in Register N into
@@ -611,6 +614,7 @@ date/ver: 03/26/16 1.0.0
                 as code directly into memory. Instead, they act as a kind of marker
                 that tell the Assembler how to handle some kinds of associations and data.
             </p>
+            <br>
             <table id="pseudo-opsTable">
                 <thead>
                     <tr>
@@ -664,7 +668,7 @@ date/ver: 03/26/16 1.0.0
                             EQU
                         </td>
                         <td>
-                            label: equ newLabel<br>
+                            label:&nbsp;equ&nbsp;newLabel<br>
                             label: equ 0xXY<br>
                             label: EQU XY<br>
                             label: eQU RH
