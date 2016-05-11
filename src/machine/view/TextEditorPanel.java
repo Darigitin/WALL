@@ -24,22 +24,6 @@ import javax.swing.text.JTextComponent;
  * 
  * date/ver: 03/25/16 1.0.0
  */
-
-/** 
- * Change Log
- * 
- * mv935583 -> Matthew Vertefeuille
- * # author   - date:     description
- * 1 mv935583   04/07/16: Implemented theme selector backend for GUI
- * 
- * 2 mv935583 - 04/11/16: Finalized backend for theme selected on GUI, also 
- *                        uncoupled the font name, size, and theme actions so
- *                        each one behaves independently.
- * 
- * 3 jl948836 - 04/26/16: Updated Split Join state of hidden editor.
- *
- * 4 jl948836 - 04/26/16: Join Editor now resets size to default size.
- */
 @SuppressWarnings("serial")
 public class TextEditorPanel extends javax.swing.JPanel {
 

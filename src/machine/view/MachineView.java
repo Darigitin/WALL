@@ -41,18 +41,6 @@ import java.awt.Toolkit;
  *           04/21/16 1.5.0
  */
 
-/**
- * 
- * CHANGE LOG
- * jl948836 - Jordan Lescallette
- * 
- * 1 jl948836 - 04/26/16: Added ability for Load Source File to handle split editor
- *                        view.
- * 
- * 2 jl948836 - 04/26/16: Clear text Editor before loading in new source code.
- * 
- * 3 jl948836 - 05/06/16: Fixed Save Source file to check for split editor
- */
 public class MachineView extends javax.swing.JFrame {
 
     private final MachineController controller;

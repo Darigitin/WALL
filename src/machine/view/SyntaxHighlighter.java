@@ -23,17 +23,6 @@ import javax.swing.JTextPane;
  *
  * @author Ryan Ball
  */
-
-/**
- * Change Log
- *
- * mv935583 -> Matthew Vertefeuille
- * # author   - date:     description
- * 01 mv935583 - 03/18/16: Converted karel syntax highlighting in order to 
- *                         properly catch all needed highlighting in the WAL
- *                         instead
- * 02 mv935583 - 04/07/16: Implemented default text color based on selected theme.
- */
 public class SyntaxHighlighter extends SwingWorker<Void,Object> {
     
     private final StyledDocument doc;

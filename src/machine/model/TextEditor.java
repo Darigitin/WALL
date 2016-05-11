@@ -20,18 +20,6 @@ import machine.view.SyntaxHighlighter;
  *
  * @author Ryan Ball
  */
-
-/**
- * Change Log
- *
- * mv935583 -> Matthew Vertefeuille
- * # author   - date:     description
- * 1 mv935583 - 03/18/16: Implemented necessary function calls in order to
- *                         invoke syntax highlighting
- * 2 mv935583 - 04/11/16: Added functions and code necessary to uncouple 
- *                        font name and size changing and to implement color theme
- *                        changing.
- */
 public class TextEditor extends JScrollPane implements Serializable {
 
     private final Color textColor = Color.BLACK;    //BEGIN CHANGE LOG: 2

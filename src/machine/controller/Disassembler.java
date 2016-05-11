@@ -10,26 +10,6 @@
  * date/ver:
  */
 
-/**
- * Change Log
- * 
- * Matt Vertefeuille -> mv935583
- * # author - date: description
- * 1 mv935583 - 02/22/16: Bug Fix - rload now displays the 0x0 to 
- *                                 reflect Change #2 in Assembler.java
- * 
- * 2 mv935583 - 04/11/16: Implemented changed to add shift instructions.
- * 
- * 3 jl948836 - 04/19/16: Swapped how RSTORE is displayed
-*/
-
-/*
-* Change log
-*
-* # author - Guojun Liu - 
-* # modfied istore and restore
-*/
-
 package machine.controller;
 
 import java.util.ArrayList;

@@ -15,21 +15,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import machine.view.MachineView;
 
-/** Change Log
-*    #Guojun Liu  03/08/16 
-*    1. Create a new string array as memory address register (MAR) to 
-*       hold the instruction in IP
-*    2. Create three new methods for CPU cycle
-*    3. Modified the loadMachine so that IR could display the correct values
-*    4. Create setInstructionRegister method for IP
-*    5. Create setInstructionRegisterForJump method to hold the condition when
-*       IP jump to a branch call.
-*    6. Modified the setIPinstruction method.
-*    7. Modified the getInstructionFromIP method.
-*    8. Create updateIPwhenHalt method to update IR when the program stopped.s
-*   
-**/
-
 public class MachineController {
         
        

@@ -1,0 +1,260 @@
+/**
+ * Change Log - Assembler.java
+ *
+ * mv935583 -> Matthew Vertefeuille
+ * jl948836 -> Jordan Lescallatte
+ * # author   - date:     description
+ * 01 jl948836 - 02/11/16: Comment character changes from ";" to "#"
+ * 02 jl948836 - 02/18/16: Add Spaces back into String, that regEx parses out
+ *                        Adjust String size for quotation (") characters
+ * 03 jl948836 - 02/18/16: Added -1 to .length(), to parse off "]" at the end of
+ *                        RBP, RSP register aliases
+ * 
+ * 04 mv935583 - 02/23/16: Fixed db so it does not append a null 
+ *                                   character at the end
+ * 05 mv935583 - 02/23/16: rload now requires hex offset to be 0x0N 
+ *                                   instead of 0xN
+ * 06 mv935583 - 02/23/16: jmpeq now works with R0 instead of just r0
+ * 
+ * 07 jl948836 - 02/28/16: made opcode local variable to all of getByteCode()
+ * 
+ * 08 jl948836 - 03/05/16: Comment Character overflow fixed; Error occurred when
+ *                         comment character was the only character on a line
+ *                         (excluding \n); check for array length to fix
+ * 
+ * 09 jl948836 - 03/05/16: Overload on return now does allows user full range of
+ *                         0-Max for SP increment (got rid of "1" + ...)
+ *  
+ * 10 jl948836 - 03/14/16: Implemented EQU Pseudo-Op
+ * 
+ * 11 mv935583 - 03/18/16: Implemented functionality in order to invoke db on
+ *                         a label
+ * 
+ * 12 mv935583 - 03/20/16: Implemented functionality in order to invoke db on
+ *                         an EQU Pseudo-Op
+ *
+ * 13 jl948836 - 03/23/16: ret overload, now is user input n + 1
+ * 
+ * 14 jl948836 - 03/24/16: Changed byte code for ret Op-code with no argument;
+ *                         Last byte is now 01 instead of 00
+ * 
+ * 15 jl948836 - 03/24/16: Get rid of "]" character so RBP and RSP translate to
+ *                         RD and RE in RSTORE opcode
+ * 
+ * 16 jl948836 - 03/24/16: Took away excess nibble given to methods that do not
+ *                         require the information
+ * 
+ * 17 jl948836 - 03/26/16: Added check to passTwo, to ensure EQU forward references
+ *                         are resolved
+ * 
+ * 18 jl948836 - 03/26/16: Added Check to CALL to determine that EQU isn't a Register
+ *                         RD and RE in RSTORE opcode
+ * 
+ * 19 jl948836 - 03/26/16: Added error statements to JMPLT and JMPEQ to check for
+ *                         invalid characters in the argument
+ * 
+ * 20 gl939543 - 03/30/16: Modified DB sudoop 
+ *
+ * 21 gl939543 - 03/30/16  Add new condition to print out the DB contents in memory
+
+ * 22 jl948836 - 04/01/16: Changed Byte Code of SRET from "63 00" to "63 01"
+ * 
+ * 22 mv935583 - 04/11/16: Implemented changed to add shift instructions
+ * 
+ * 20 jl948836 - 04/01/16: Changed Byte Code of SRET from "63 00" to "63 01"
+ *
+ * 22 jl948836 - 04/07/16: Corrected ByteCode Format of Operations
+ * 
+ * 23 jl948836 - 04/07/16: Swapped ByteCode of move and rload. rload is now 4
+ *                         and move is D2. rload is now a 2 byte instruction.
+ * 
+ * 24 jl948836 - 04/10/16: Got rid of operationLocation(). No longer necessary
+ *                         due to rload being the same size as all other instructions.
+ * 
+ * 25 jl948836 - 04/14/16: Error in getRegister(), changed .equls() to .matches() for
+ *                         regEx
+ *
+ * 26 jl948836 - 04/14/16: isSingleHex() now accepts 0xH and 0x0H formats
+ * 
+ * 27 jl948836 - 04/15/16: bug, store now Handles EQU labels
+ * 
+ * 28 jl948836 - 04/15/16: bug, rload and rstore now handles 0xH and 0x0H formats 
+ *                         for offset.
+ *
+ * 29 jl948836 - 04/10/16: Re-ordered the Instruction ByteCode methods to be in
+ *                         ascending order of their ByteCodes.
+ * 
+ * 30 jl948836 - 04/15/16: Created aluOperations() to replace ADD, AND, OR, and XOR
+ *                         functions. (generating Byte Code).
+ * 
+ * 31 jl948836 - 04/15/16: Created regAddFormat() to replace LOAD1 and LOAD2, as well
+ *                         as chunks of JMPEQ, JMPLT, and STORE. (generating Byte Code)
+ * 
+ * 32 jl948836 - 04/16/16: Create bitManipFormat() to replace the ROR, ROL, SRA, SRL
+ *                         SL functions. (generating byteCode).
+ * 
+ * 33 jl948836 - 04/16/16: Created directValueFormat() to replace the CALL, RET, SCALL
+ *                         JMP functions. (generating byteCode).
+ * 
+ * 34 jl948836 - 04/16/16: Created dRegFormat() to replace the MOVE function. (generating
+ *                         byteCode).
+ * 
+ * 35 jl948836 - 04/16/16: Created imDRegFormat() to replace chunks of RLOAD AND RSTORE
+ *                         functions. (generating byteCode).
+ * 
+ * 36 mv935583 - 04/16/16: Created OPERATIONSMAP.
+ * 
+ * 37 jl948836 - 04/17-16: Re-wrote the generateByteCode() function to incorporate
+ *                         changes 30-36.
+ * 
+ * 38 gl939543 - 04/19/16: Created cross reference under assembler listing
+ * 
+ * 39 gl939543 - 04/19/16: Point the error message to the error line in assembler listing if
+ *                         error(s) detected. 
+ *
+ * 40 gl939543 - 04/27/16: Update the cross reference list to hold labels mapped to labels 
+ *                         under EQU.
+ * 41 gl939543 - 04/27/16: Update checkReferenceLabel method to hold all EQU cases.
+ * 
+ * 42 gl939543 - 04/27/16: Create a new method for page format when the user need to 
+ *                         print out the assembler listing.
+ * 
+ * 43 jl948836 - 04/27/16: Added rules to what a label can be.
+ * 
+ * 44 jl948836 - 04/28/16: Modified isOperation() to use OPERATIONMAP
+ * 
+ * 45 jl948836 - 04/30/16: Removed invalid label from code list.
+ * 
+ * 46 jl948836 - 05/06/16: Rewrote PassOne and PassTwo
+ *
+ * -Guojun Liu
+ * -Modified the jmplt method.
+ * -Modified the store, istore and rstore methods.
+ * -Create a method to create assembler listing
+ */
+
+/**
+ * Change Log - Clock.java
+ *
+ * # author - date: description
+ * 1 jl948836 - 02/20/16: Added a third parameter to immediateLoad; Feeds in
+ *                        third Nibble of instruction; If it is hex F; then
+ *                        the immediateLoad is part of the rload instruction,
+ *                        and registerF shouldn't print a value
+ * 
+ * 3 jl948836 - 03/24/16: The additional 1 is now generated at byte code, instead
+ *                        of by the clock
+ * 
+ * 4 jl948836 - 04/01/16: Fixed the SCALL and SRET functions.
+ * 
+ * 5 jl948836 - 04/01/16: Corrected format of ByteCode for iload and move
+ * 
+ * 6 jl948836 - 04/01/16:
+ * 4 jl948836 - 04/01/16: Fixed the SCALL and SRET functions
+ * 
+ * 5 mv935583 - 04/11/16: Implemented changed to add shift instructions.
+ * 
+ * 6 jl948836 - 04/19/16: flipped RSTORE, register operands were backward.
+ * 
+ * 7 mv935583 - 04/25/16: Added code for tracking number of instructions executed
+ * 
+ * 8 jl948836 - 05/08/16: Fixed IP to not Increment on Halt
+ *
+ * Guojun Liu  03/08/16 
+ * 1. Modified the fetch phase
+ * 2. Modified the HALT condition in decode phase
+ * 3. Modified two execute phase
+ */
+
+/**
+ * Change Log - Disassembler.java
+ * 
+ * Matt Vertefeuille -> mv935583
+ * # author - date: description
+ * 1 mv935583 - 02/22/16: Bug Fix - rload now displays the 0x0 to 
+ *                                 reflect Change #2 in Assembler.java
+ * 
+ * 2 mv935583 - 04/11/16: Implemented changed to add shift instructions.
+ * 
+ * 3 jl948836 - 04/19/16: Swapped how RSTORE is displayed
+ *
+ * # author - Guojun Liu - 
+ * # modfied istore and restore
+ */
+
+/** Change Log - MachineController.java
+ *    Guojun Liu  03/08/16 
+ *    1. Create a new string array as memory address register (MAR) to 
+ *       hold the instruction in IP
+ *    2. Create three new methods for CPU cycle
+ *    3. Modified the loadMachine so that IR could display the correct values
+ *    4. Create setInstructionRegister method for IP
+ *    5. Create setInstructionRegisterForJump method to hold the condition when
+ *       IP jump to a branch call.
+ *    6. Modified the setIPinstruction method.
+ *    7. Modified the getInstructionFromIP method.
+ *    8. Create updateIPwhenHalt method to update IR when the program stopped.s
+ *   
+ */
+
+ /**
+ * Change Log - SyntaxHighlighter.java
+ *
+ * mv935583 -> Matthew Vertefeuille
+ * # author   - date:     description
+ * 01 mv935583 - 03/18/16: Converted karel syntax highlighting in order to 
+ *                         properly catch all needed highlighting in the WAL
+ *                         instead.
+ */
+
+ /**
+ * Change Log - TextEditor.java
+ *
+ * mv935583 -> Matthew Vertefeuille
+ * # author   - date:     description
+ * 1 mv935583 - 03/18/16: Implemented necessary function calls in order to
+ *                         invoke syntax highlighting
+ * 2 mv935583 - 04/11/16: Added functions and code necessary to uncouple 
+ *                        font name and size changing and to implement color theme
+ *                        changing.
+ */
+
+ /**
+ * 
+ * CHANGE LOG - MachineView.java
+ * jl948836 - Jordan Lescallette
+ * 
+ * 1 jl948836 - 04/26/16: Added ability for Load Source File to handle split editor
+ *                        view.
+ * 
+ * 2 jl948836 - 04/26/16: Clear text Editor before loading in new source code.
+ * 
+ * 3 jl948836 - 05/06/16: Fixed Save Source file to check for split editor
+ */
+
+ /**
+ * Change Log - SyntaxHighlighter.java
+ *
+ * mv935583 -> Matthew Vertefeuille
+ * # author   - date:     description
+ * 01 mv935583 - 03/18/16: Converted karel syntax highlighting in order to 
+ *                         properly catch all needed highlighting in the WAL
+ *                         instead
+ * 02 mv935583 - 04/07/16: Implemented default text color based on selected theme.
+ */
+
+ /** 
+ * Change Log - TextEidtorPanel.java
+ * 
+ * mv935583 -> Matthew Vertefeuille
+ * # author   - date:     description
+ * 1 mv935583   04/07/16: Implemented theme selector backend for GUI
+ * 
+ * 2 mv935583 - 04/11/16: Finalized backend for theme selected on GUI, also 
+ *                        uncoupled the font name, size, and theme actions so
+ *                        each one behaves independently.
+ * 
+ * 3 jl948836 - 04/26/16: Updated Split Join state of hidden editor.
+ *
+ * 4 jl948836 - 04/26/16: Join Editor now resets size to default size.
+ */

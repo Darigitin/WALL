@@ -11,12 +11,6 @@
  * date/ver: 03/19/16 1.0.5
  */
 
-/**
- * Change Log
- * 
- * # author   - date:     description
- * 
- */
 package machine.view;
 
 import java.awt.Color;

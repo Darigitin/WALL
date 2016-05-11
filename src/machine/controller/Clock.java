@@ -8,41 +8,6 @@
  * date/ver:
  */
 
-/**
- * Change Log
- *
- * # author - date: description
- * 1 jl948836 - 02/20/16: Added a third parameter to immediateLoad; Feeds in
- *                        third Nibble of instruction; If it is hex F; then
- *                        the immediateLoad is part of the rload instruction,
- *                        and registerF shouldn't print a value
- * 
- * 3 jl948836 - 03/24/16: The additional 1 is now generated at byte code, instead
- *                        of by the clock
- * 
- * 4 jl948836 - 04/01/16: Fixed the SCALL and SRET functions.
- * 
- * 5 jl948836 - 04/01/16: Corrected format of ByteCode for iload and move
- * 
- * 6 jl948836 - 04/01/16:
- * 4 jl948836 - 04/01/16: Fixed the SCALL and SRET functions
- * 
- * 5 mv935583 - 04/11/16: Implemented changed to add shift instructions.
- * 
- * 6 jl948836 - 04/19/16: flipped RSTORE, register operands were backward.
- * 
- * 7 mv935583 - 04/25/16: Added code for tracking number of instructions executed
- * 
- * 8 jl948836 - 05/08/16: Fixed IP to not Increment on Halt
- */
-
-/* Change Log
- * Guojun Liu  03/08/16 
- * 1. Modified the fetch phase
- * 2. Modified the HALT condition in decode phase
- * 3. Modified two execute phase
-*/
-
 package machine.controller;
 
 import java.util.Arrays;
