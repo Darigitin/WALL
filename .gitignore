@@ -1,7 +1,11 @@
-build/
-dist/
 nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
 Assembler\ Listing.txt
 WALL\ Cross-Reference\ Listing.txt
-WALL-Listing.lst
-/WALL-Listing.lst
+*.lst
+HEAD
+build.xml

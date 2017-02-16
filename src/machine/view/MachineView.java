@@ -28,6 +28,7 @@ import javax.swing.text.JTextComponent;
 import machine.controller.MachineController;
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import machine.model.TextEditor;
 
 /**
  * Program: Machine View
@@ -618,8 +619,17 @@ speedComboBox.addActionListener(new java.awt.event.ActionListener() {
     private void disassembleButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_disassembleButtonActionPerformed
         String[] ramBytes= getAllRAMBytes();
         
-        textEditorPanel.textEditor.getTextPane().setText(
-            controller.performDisassemble(getInstructionPointer(), ramBytes));
+        TextEditor editor;
+        if (textEditorPanel.getSplitJoinButton().getText().equals("Split Editor")) {
+            editor = textEditorPanel.textEditor;
+            editor.setText("");
+            editor.getTextPane().setText(controller.performDisassemble(getInstructionPointer(), ramBytes));
+        }
+        else {
+            editor = textEditorPanel.getTextEditorFrame().getTextEditorPanel().getTextEditor();
+            editor.setText("");
+            editor.setText(controller.performDisassemble(getInstructionPointer(), ramBytes));
+        }
     }//GEN-LAST:event_disassembleButtonActionPerformed
 
     private void speedComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_speedComboBoxActionPerformed

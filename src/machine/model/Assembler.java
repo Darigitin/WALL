@@ -1,16 +1,16 @@
 /**
  * Program: Assembler.java
  *
- * Purpose: This is our Assembler class. It takes the source from the editor 
- *          view and sends it through a two pass parser. Pass one parses the 
- *          text, splitting everything into labels, operations, and comments. 
+ * Purpose: This is our Assembler class. It takes the source from the editor
+ *          view and sends it through a two pass parser. Pass one parses the
+ *          text, splitting everything into labels, operations, and comments.
  *          Pass two takes this information.
  *
  * @author: Jordan Lescallette
  * @author: Matthew Vertefeuille
  * @author: Guojun Liu
  *
- * date/ver: 
+ * date/ver:
  */
 
 package machine.model;
@@ -69,12 +69,12 @@ public class Assembler {
     private final HashMap<String, String> referenceLine;//line number(s) for referenced label
     private final HashMap<Integer, String> errorMap;//line number(s) for referenced label
     private final HashMap<String, String> unresolveLtLReferences; //Marks all invalid Label to Label references
-    private String[] codes, tempMem; 
+    private String[] codes, tempMem;
     private String Location[], Object_code[];
     private String DBcode = "";
     private String SIP = "00";
     private int codeLines = 1;
-    
+
 
     /**
      * Creates a new controller object and sets the memory table all to zeroes
@@ -106,14 +106,14 @@ public class Assembler {
     public ArrayList<String> parse(String text) {
         passOne(text);
         passTwo();
-       
+
         if (errorMap.isEmpty()) {
             controller.setEditorErrorVisible(false);
         }
         else {
             displayErrors();
         }
-        
+
         generateAssemblerList();  // Create an assembler list
 
         return byteCode;
@@ -127,10 +127,10 @@ public class Assembler {
         controller.setEditorErrors(errorMap);
         controller.setEditorErrorVisible(true);
     }
-    
+
     /**
-     * 
-     * @param text 
+     *
+     * @param text
      */
     private void passOne(String text) {
         String[] lines = text.split("\n");
@@ -174,7 +174,7 @@ public class Assembler {
                             default: //SIP, ORG
                                 errorMap.put((i+1), "Error: " + tokens[0].toUpperCase() + " on line " + (i+1) + " does not use a label.");
                                 break;
-                        }    
+                        }
                     }
                     else if (validLabel) { //Label with nothing following
                         labelMap.put(label[0], currentLocation);
@@ -221,9 +221,9 @@ public class Assembler {
 	}
 	resolveLtLReference();
     }
-    
+
     /**
-     * 
+     *
      */
     private void passTwo() {
         int currentLocation = 0;
@@ -231,9 +231,9 @@ public class Assembler {
         String bytes;
         Location = new String[codes.length];
         Object_code = new String[codes.length];
-        
+
         //System.out.println("PassTwo");
-        for (int i = 0; i < codes.length; i++) { 
+        for (int i = 0; i < codes.length; i++) {
             tokens = codes[i].replaceFirst(".+:\\s*", "").split("\\s+", 2);
             if (tokens.length >= 1 && !tokens[0].equals("")) {
                 if (isPseudoOp(tokens[0].toUpperCase())) {
@@ -284,15 +284,15 @@ public class Assembler {
         // build up bytecode for return
         byteCode.addAll(Arrays.asList(tempMem));
     }
-    
+
     /**
      * Equivalent - Checks what kind of equivalency is being made (label to hex,
      * label to int, label to label, or label to register) and then makes the
      * reference and places them into the appropriate HashMap. (labelMap for
      * labels to int, and labels to hex. equivalencies for label to label, and
      * label to register.)
-     * 
-     * @param tokens - tokens[0] is the EQU Label, tokens[1] is EQU, 
+     *
+     * @param tokens - tokens[0] is the EQU Label, tokens[1] is EQU,
      *                 tokens[2] is a Label, Register, Int, or Hex
      * @param i - location in the labels array
      */
@@ -327,8 +327,9 @@ public class Assembler {
      * @return size of db pseudo op argument
      */
     private int passOneDB(String[] tokens) {
-        int result;
+        int result = 0;
         String temp = "";
+        String[] args;
         // concatenate the parameter to db
         for (int i = 1; i < tokens.length; i++) {
             temp += tokens[i];
@@ -338,14 +339,18 @@ public class Assembler {
             }
             //CHANGE LOG END: 2
         }
-        // is the argument a string?
-        if (temp.matches("[\"]{1}.*[\"]{1}") || temp.matches("[\']{1}.*[\']{1}")) {
-            //-2 for both the beginning and ending " char. See passTwo
-            result = temp.length() - 2; //CHANGE LOG: 2
-            //System.out.println("In passOneDB, length of string is: " + result);
-        } else { // not a string, split on ,
-            String[] args = temp.split(",");
-            result = args.length;
+        args = temp.split(",");
+
+        for (String arg : args) {
+            // is the argument a string?
+            if (arg.matches("[\"]{1}.*[\"]{1}") || arg.matches("[\']{1}.*[\']{1}")) {
+                //-2 for both the beginning and ending " char. See passTwo
+                result += arg.length() - 2; //CHANGE LOG: 2
+                //System.out.println("In passOneDB, length of string is: " + result);
+            }
+            else {
+                result++;
+            }
         }
         return result;
     }
@@ -370,7 +375,7 @@ public class Assembler {
     /**
      * Determines if the address specified in ORG argument is valid hexadecimal
  equValue.
-     * 
+     *
      * @param tokens String[] of pseudo ops
      * @param i location of ORG pseudo op in tokens
      * @return valid ORG argument as a integer
@@ -387,10 +392,10 @@ public class Assembler {
 
     /**
      *
-     * Ensures that the tokens array is of the appropriate length and then 
-     * invokes passOneDb to find the number of bytes to skip in memory for 
+     * Ensures that the tokens array is of the appropriate length and then
+     * invokes passOneDb to find the number of bytes to skip in memory for
      * memory storage of DB pseudo op.
-     * 
+     *
      * @param tokens String[] of pseudo ops
      * @param i Location of DB pseudo op in tokens
      * @return Number of bytes to skip in memory
@@ -406,10 +411,10 @@ public class Assembler {
     }
 
     /**
-     * Ensures that the tokens array is of the appropriate length and then 
-     * invokes passOneBSS to find the number of bytes to skip in memory for 
+     * Ensures that the tokens array is of the appropriate length and then
+     * invokes passOneBSS to find the number of bytes to skip in memory for
      * memory storage of BSS pseudo op.
-     * 
+     *
      * @param tokens String[] of pseudo ops
      * @param i Location of BSS pseudo op in tokens
      * @return Number of bytes to skip in memory
@@ -433,10 +438,10 @@ public class Assembler {
             if (isHex(tokens[1])) {
                 SIP = handleHex(tokens[1], i);
                 //SIP = tokens[1].substring(2, 4);
-            } 
+            }
             else if (isInt(tokens[1])) {
                 SIP = intToHex((tokens[1]));
-            } 
+            }
             else if (labelMap.containsKey(tokens[1])) {
                 SIP = intToHex(labelMap.get(tokens[1]).toString());
             }
@@ -477,23 +482,27 @@ public class Assembler {
     private int passTwoDB(String dbString, int currentLocation, int lineNum) {
         int result = 0;
         DBcode = "";
-        
+
         String[] args = dbString.split(",\\s*");
         for (String arg : args) {
-            if (isHex(arg)) { 
+            if (isHex(arg)) {
                 tempMem[currentLocation + result++] = Integer.toHexString(hexToInt(arg));
-                DBcode += Integer.toHexString(hexToInt(arg)).toUpperCase() + " "; 
-            } 
+                DBcode += Integer.toHexString(hexToInt(arg)).toUpperCase() + " ";
+            }
             else if (isInt(arg)) {
                 tempMem[currentLocation + result++] = intToHex(arg);
-                DBcode += intToHex(arg).toUpperCase() + " "; 
-            } 
+                DBcode += intToHex(arg).toUpperCase() + " ";
+            }
             else if (arg.matches("[\"]{1}[^\"]*[\"]{1}|[\']{1}[^\']*[\']{1}")) {
                 int argLen = arg.length() - 1;
                 for (int j = 0; j < argLen - 1; j++) {
                     tempMem[currentLocation + result++] = intToHex(Integer.toString((int) arg.charAt(j + 1)));
-                    DBcode += intToHex(Integer.toString((int) arg.charAt(j + 1))).toUpperCase() + " "; 
+                    DBcode += intToHex(Integer.toString((int) arg.charAt(j + 1))).toUpperCase() + " ";
                 }
+            }
+            else if (labelMap.containsKey(arg)) {
+                tempMem[currentLocation + result++] = intToHex(Integer.toString(labelMap.get(arg)));
+                DBcode += intToHex(Integer.toString(labelMap.get(arg))).toUpperCase() + " ";
             }
             else {
                 errorMap.put((lineNum), "Invalid db parameter \"" + arg + "\" found on line " + lineNum);
@@ -501,16 +510,16 @@ public class Assembler {
         }
         return result;
     }
-    
+
     /**
      * Will remove in-line comments and comment lines from the code.
-     * 
+     *
      * @param codeLines
      * @param lineCount
      */
     private void stripComments(String[] codeLines, int lineCount) {
         String[] tokens;
-        
+
         for (int i = 0; i < lineCount; i++) {
             codeList.add(codeLines[i]);
             // CHANGE LOG BEGIN: 1
@@ -525,7 +534,7 @@ public class Assembler {
             }
         }
     }
-    
+
     /**
      * Makes sure that all EQU labels map to existing labels.
      */
@@ -541,7 +550,7 @@ public class Assembler {
 
     /**
      * Takes an the the mnemonic tokens and converts it into its byteCode format.
-     * 
+     *
      * @param operation - Operation Name and Operands
      * @param line - Line number of the Operation
      * @return - A String equValue containing the Op-Code of the tokens
@@ -549,13 +558,13 @@ public class Assembler {
     private String generateByteCode(String[] tokens, int line) {
         //String[] tokens = tokens.split("\\s+", 2); //split opcode from args
         String op = tokens[0].toUpperCase();
-        
+
         if (isOperation(op)) { //valid Operation
-    
+
             String opCode = OPERATIONMAP.get(op);
-            
+
             if (tokens.length == 2) { //Op-Code has arguments
-                
+
                 String[] args = tokens[1].split("\\s*,\\s*");
                 String[] tempArgs = args;  //make sure check referenced label will not change anything in args
                 checkReferencedLabel(tempArgs, line);  //check if the args contains reference label
@@ -612,7 +621,7 @@ public class Assembler {
                 else { //To many Arguments
                     errorMap.put((line), "Error: To many arguments on line " + line);
                 }//end else
-                    
+
             }//end if
             else { //No Arguments
                 //NO-OP, HALT, RET, SRET
@@ -632,7 +641,7 @@ public class Assembler {
         }//end else
                     return "0000";
     }
-    
+
     /**
      *
      * @param bytes
@@ -650,9 +659,9 @@ public class Assembler {
     }
 
     /**
-     * Single Register Format - Generate the second byte of the PUSH(64) and POP(65) 
+     * Single Register Format - Generate the second byte of the PUSH(64) and POP(65)
      * Op-Codes. The Last nibble is always 0 (unused).
-     * 
+     *
      * @param op - PUSH, POP
      * @param firstArg - Register
      * @param line - Line number of the Op-Code
@@ -661,10 +670,10 @@ public class Assembler {
     private String sRegFormat(String op, String firstArg, int line) {
         return getRegister(op, firstArg, line) + "0";
     }
-    
+
     /**
      * Double Register Format - Generates the second byte of the MOVE(D2) Op-Code.
-     * 
+     *
      * @param op - MOVE
      * @param firstArg - Destination Register
      * @param secondArg - Source Register
@@ -675,11 +684,11 @@ public class Assembler {
     private String dRegFormat(String op, String firstArg, String secondArg, int line) {
         return getRegister(op, firstArg, line) + getRegister(op, secondArg, line);
     }
-    
+
     /**
-     * Triple Register Format - Generates the bottom three nibbles of the ADD(5), AND(8), 
+     * Triple Register Format - Generates the bottom three nibbles of the ADD(5), AND(8),
      * OR(7), and XOR(9) Op-Codes.
-     * 
+     *
      * @param firstArg - Destination Register
      * @param secondArg - Source Register 1
      * @param thirdArg - Source Register 2
@@ -691,12 +700,12 @@ public class Assembler {
         return getRegister(op, firstArg, line) + getRegister(op, secondArg, line) + getRegister(op, thirdArg, line);
     }
     //CHANGE LOG END: 30
-    
+
     /**
-     * Register Immediate Format - Generates the bottom three nibbles of the STORE, 
-     * JMPEQ, JMPLT, direct LOAD, and immediate LOAD instructions. Dereferences 
+     * Register Immediate Format - Generates the bottom three nibbles of the STORE,
+     * JMPEQ, JMPLT, direct LOAD, and immediate LOAD instructions. Dereferences
      * labels and EQU labels to obtain the address.
-     * 
+     *
      * @param op - LOAD, STORE, JMPEQ, JMPLT
      * @param firstArg - Register
      * @param secondArg - Address
@@ -713,7 +722,7 @@ public class Assembler {
         }
         else if (equivalencies.containsKey(address)) {
             if (unresolveLtLReferences.containsKey(address)) {
-                errorMap.put(line, "Error: " + address + " - forward Reference - " + 
+                errorMap.put(line, "Error: " + address + " - forward Reference - " +
                         unresolveLtLReferences.get(address) + " - does not exist. Referenced on line " + line);
             }
             else {
@@ -723,34 +732,34 @@ public class Assembler {
         }
         else if (isHex(address)) {
             result = register + handleHex(address, line);
-        } 
+        }
         else if (isInt(address)) {
             result = register + intToHex(address);
-        } 
+        }
         else {
-            errorMap.put((line), "Error: " + op + " operation on line " + line + 
+            errorMap.put((line), "Error: " + op + " operation on line " + line +
                     " has invalid arguments.");
         }
-        
+
         return result;
     }
     //CHANGE LOG END: 31
-    
+
     /**
-     * Register Reduced Immediate Format - Generates the bottom Byte of the ROR(A0), ROL(A1), 
+     * Register Reduced Immediate Format - Generates the bottom Byte of the ROR(A0), ROL(A1),
      * SRA(A2), SRL(A3), and SL(A4) Op-Codes. Immediate equValue limited to a single nibble
      * (usable range 0 <= n < 9).
-     * 
+     *
      * @param op - ROR, ROL, SRA, SRL, SL
-     * @param firstArg - Destination/Source Register 
+     * @param firstArg - Destination/Source Register
      * @param secondArg - Number of Bits to manipulate (range 0 <= n < 9)
      * @param line - Line number of the tokens
-     * @return - the bottom Byte of the Op-Code 
+     * @return - the bottom Byte of the Op-Code
      */
     //CHANGE LOG BEGIN: 32
     private String regRedImFormat(String op, String firstArg, String secondArg, int line) {
         String result = "00";
-        
+
         boolean errorFlag = false;
         int secondArgDecFormat;
         firstArg = getRegister(op, firstArg, line);
@@ -783,13 +792,13 @@ public class Assembler {
             else {
                     errorFlag = true;
                 }
-            
+
         }
         if (errorFlag) {
             errorMap.put((line), "Error: " + op + " operation on line " + line +
                             " has invalid arguments.");
         }
-        
+
         return result;
     }
     //CHANGE LOG END: 32
@@ -797,7 +806,7 @@ public class Assembler {
     /**
      * Immediate Double Register Format - generates the bottom three nibbles of
      * the RLOAD(4) and RSTORE(E) Op-Codes.
-     * 
+     *
      * @param op - RLOAD, RSTORE
      * @param offset - Offset from the Address in the Register (range -8 <= H <= 7)
      * @param firstArg - Register
@@ -817,7 +826,7 @@ public class Assembler {
             String ref = equivalencies.get(offset);
             offset = "0x" + intToHex(Integer.toString(labelMap.get(ref)));
         }
-        
+
         //Handle offset (including the equValue dereferenced from Equivalencies
         if (isSingleHex(offset)) {
             if (offset.length() == 3){
@@ -865,31 +874,31 @@ public class Assembler {
         else {
             errorFlag = true;
         }
-        
+
         if (errorFlag) {
             errorMap.put((line), "Error: Invalid offset for " + op + " found on line " + line);
             return result;
         }
-        
+
         result = offset + getRegister(op, firstArg, line) + getRegister(op, secondArg, line);
         return result;
-        
+
     }
     //CHANGE LOG END: 35
-    
+
     /**
-     * Immediate Value Format - Generates the bottom byte of the CALL(60), RET(61), 
+     * Immediate Value Format - Generates the bottom byte of the CALL(60), RET(61),
      * SCALL(62), and JMP(B0) Op-Codes.
-     * 
+     *
      * @param op - CALL, RET, SCALL, JMP
      * @param firstArg - Address/Label
      * @param line - Line number of the tokens
-     * @return - the second byte of the Op-Code 
+     * @return - the second byte of the Op-Code
      */
     //CHANGE LOG BEGIN: 33
     private String imValFormat(String op, String firstArg, int line) {
         String result = "00";
-        
+
         if (labelMap.containsKey(firstArg)) { //arg is a label
             result = intToHex(Integer.toString(labelMap.get(firstArg)));
         }
@@ -904,7 +913,7 @@ public class Assembler {
         }
         else if (isInt(firstArg)) { // arg is decimal
             result = intToHex(firstArg);
-        } 
+        }
         else if (isHex(firstArg)) { // arg is hex
             result = handleHex(firstArg, line);
             //result = firstArg.substring(2, 4); //TODO: Handle FORAMT 0xH and 0xHH
@@ -912,15 +921,15 @@ public class Assembler {
         else {
             errorMap.put((line), "Error: Invalid destination for " + op + " on line " + line);
         }
-        
+
         return result;
     }
     //CHANGE LOG END: 33
-    
+
     /**
      * Load Syntax - Handles Syntax Checking for Direct Loads(1) and Immediate loads(2).
      * Generates the entire Op-Code.
-     * 
+     *
      * @param op - LOAD
      * @param firstArg - Destination Register
      * @param secondArg - int/hex/label with or w/o "[]"
@@ -937,13 +946,13 @@ public class Assembler {
         else { //Immediate Load
             result = "2" + regImFormat(op, firstArg, secondArg, line);
         }
-        
+
         return result;
     }
-    
+
     /**
-     * Store Syntax - Handles the syntax checking for STORE(3). 
-     * 
+     * Store Syntax - Handles the syntax checking for STORE(3).
+     *
      * @param op - STORE
      * @param firstArg - int/hex/label with "[]"
      * @param secondArg - Source Register
@@ -961,12 +970,12 @@ public class Assembler {
         }
         else {
             errorMap.put((line), "Error: Invalid Syntax for " + op + " on line " + line);
-        } 
+        }
         return result;
     }
     /*
      * Relative Syntax - Handles the syntax checking for RLOAD(4) and RSTORE(E).
-     * 
+     *
      * @param op - RLOAD, RSTORE
      * @param firstArg - Destination Register
      * @param secondArg - Source Register
@@ -993,17 +1002,17 @@ public class Assembler {
         }
     }
     //CHANGE LOG END: 38
-    
+
     /**
-     * 
+     *
      * @param op
      * @param firstArg
      * @param line
-     * @return 
+     * @return
      */
     private String retSyntax(String op, String firstArg, int line) {
         String result = "01";
-        
+
         if (isInt(firstArg)) {
             result = Integer.toString(Integer.parseInt(firstArg) + 1);
             result = intToHex(result);
@@ -1019,14 +1028,14 @@ public class Assembler {
         else {
             errorMap.put((line), "Error: Invalid Syntax for " + op + " on line " + line);
         }
-        
+
         return result;
     }
-    
+
     /**
-     * Jump Comparison Syntax - Test to see whether the Op-Code is JMPEQ or JMPLT, 
+     * Jump Comparison Syntax - Test to see whether the Op-Code is JMPEQ or JMPLT,
      * parse the syntax and call the Register Immediate Format function.
-     * 
+     *
      * @param op - JMPEQ, JMPLT
      * @param firstArg - Reg=Reg or Reg<Reg (Reg can be a EQU lable)
      * @param secondArg - Label/Address
@@ -1044,13 +1053,13 @@ public class Assembler {
             else {
                 errorMap.put((line), "Invalid Operator for " + op + " on line " + line);
             }
-        }            
+        }
         return result;
     }
-    
+
     /**
      * Indirect Load Syntax - Handles the syntax checking for ILOAD(D0).
-     * 
+     *
      * @param op - ILOAD
      * @param firstArg - Destination Register
      * @param secondArg - [Source Register]
@@ -1063,17 +1072,17 @@ public class Assembler {
         if (secondArg.matches("\\[.+\\]")) {
             tokens = secondArg.split("\\[|\\]");
             result = dRegFormat(op, firstArg, tokens[1], line); //CHANGE LOG: 34
-        } 
+        }
         else {
             errorMap.put((line), "Error: ILOAD operation on line " + line
                 + " has invalid arguments.");
         }
         return result;
     }
-    
+
     /**
      * Indirect Store Syntax - Handles the syntax checking for ISTORE(D1).
-     * 
+     *
      * @param op - ISTORE
      * @param firstArg - [Destination Register]
      * @param secondArg - Source Register
@@ -1081,7 +1090,7 @@ public class Assembler {
      * @return - The second byte for the Op-Code
      */
     //modified ISTORE: ISTORE [RM], RN
-    //store the equValue in register N into the memory cell referenced by the 
+    //store the equValue in register N into the memory cell referenced by the
     //address in register M
     private String istoreSyntax(String op, String firstArg, String secondArg, int line) {
         String result = "00";
@@ -1089,14 +1098,14 @@ public class Assembler {
         if (firstArg.matches("\\[.+\\]")) {
             tokens = firstArg.split("\\[|\\]");
             result = dRegFormat(op, tokens[1], secondArg, line); //CHANGE LOG: 34
-        } 
+        }
         else {
             errorMap.put((line), "Error: ISTORE operation on line " + line
                 + " has invalid arguments.");
         }
         return result;
     }
-    
+
     /**
      * Helper method Returns a string with the corresponding register
      *
@@ -1120,7 +1129,7 @@ public class Assembler {
         else if (register.toUpperCase().matches("R[0-9A-F]|RSP|RBP")) {
             /*
              * Added the or statements to allow for users to call
-             * either the literal name of the bp or just the 
+             * either the literal name of the bp or just the
              * register name
              * Cody Galbreath - 03/23/2014
              */
@@ -1128,17 +1137,17 @@ public class Assembler {
                 return "D";
             else if (register.toUpperCase().equals("RSP"))
                 return "E";
-            
+
             return register.substring(1);
-        }       
+        }
         errorMap.put((line), "Error: Invalid register for " + op + " on line " + line);
         return "0";
     }
     /**
-     * 
+     *
      * @param register
      * @param line
-     * @return 
+     * @return
      */
     //CHANGE LOG BEGIN: 10
     private boolean isComparisonReg(String register) {
@@ -1148,15 +1157,15 @@ public class Assembler {
         else if (equivalencies.containsKey(register) && "R0".equals(equivalencies.get(register).toUpperCase())){
             return true;
         }
-        
+
         return false;
-        
+
     }//end getComparisonReg()
     //CHANGE LOG END: 10
-    
+
     /**
      * Helper Method to ensure that a label is both unique and follows the valid
-     * label format (underscores and alpha-numeric characters). 
+     * label format (underscores and alpha-numeric characters).
      * Invalid Characters: Spaces, only numeric, only hex values, register names
                      and tokens mnemonics.
      *
@@ -1193,7 +1202,7 @@ public class Assembler {
     private boolean isInt(String number) {
         if (number.length() == 0 || number.length() > 4) {
             return false;
-        } 
+        }
         else if (number.matches("[0-9][0-9]{0,2}") || number.matches("-[0-9][0-9]{0,2}")) {
             return true;
         }
@@ -1203,7 +1212,7 @@ public class Assembler {
     /**
      * Test to see if the user input a single Hex character in either 0xH or
      * 0x0H format.
-     * 
+     *
      * @param number
      * @return True if it is Hex, false if not
      */
@@ -1215,7 +1224,7 @@ public class Assembler {
                     number.substring(2,3).toUpperCase().matches("[0-9A-F]")) {
                 return true;
             }
-        } 
+        }
         //CHANGE LOG END: 26
         else if (number.length() == 4) {
             if (number.substring(0, 3).equalsIgnoreCase("0x0")
@@ -1225,7 +1234,7 @@ public class Assembler {
         }
         return false;
     }
- 
+
     /**
      * Helper method to check for valid 2 digit hex string must have '0x' at the
      * start to be valid
@@ -1252,10 +1261,10 @@ public class Assembler {
         }
         return false;
     }
-    
+
     /**
      * Resolves Hex in both the OxH and the OxHH format
-     * 
+     *
      * @param hex - hex value with the Ox or OX appended to it.
      * @param lineNumber
      * @return - a hex number of two hex digits
@@ -1293,7 +1302,7 @@ public class Assembler {
         String result = Integer.toHexString(Integer.parseInt(decimal)).toUpperCase();
         if (result.length() == 1) {
             result = "0" + result;
-        } 
+        }
         else if (result.length() > 2) {
             result = result.substring(result.length() - 2);
         }
@@ -1322,7 +1331,7 @@ public class Assembler {
      * @return boolean
      */
     private boolean isOperation(String token) {
-        return OPERATIONMAP.containsKey(token.toUpperCase()); //CHANGE LOG: 41        
+        return OPERATIONMAP.containsKey(token.toUpperCase()); //CHANGE LOG: 41
     }
 
     /**
@@ -1332,44 +1341,44 @@ public class Assembler {
      * @param labels
      * @param codes
      */
-    public void printContent() {        
+    public void printContent() {
         System.out.println("\nPrinting through Label map");
         for (String key: labelMap.keySet()) {
             System.out.println(key + " : " + intToHex(Integer.toString(labelMap.get(key))));
         }
-        
+
         //CHANGE LOG BEGIN: 10
         System.out.println("\nPrintin through Equivalencies Map");
         for (String key: equivalencies.keySet()){
             System.out.println(key + " : " + equivalencies.get(key));
         }
         //CHANGE LOG END: 10
-        
+
         System.out.println("\nCODES:");
         for (String code : codes) {
             System.out.println(code);
             //codeList.add(codes[i]);
         }
-        
+
         for (int i = 0; i < tempMem.length; i++) {
             if ((i+1) % 16 == 0) {
                 System.out.print(tempMem[i]);
-                System.out.println();              
+                System.out.println();
             } else {
                 System.out.print(tempMem[i] + ", ");
-            
+
             }
         }
     }
-    
+
     /**
      * Author: Guojun Liu
-     * 04/19/2016 
+     * 04/19/2016
      * @param operation
-     * @param line 
+     * @param line
      * Check if the give line's code contains referenced label
      */
-    
+
     private void checkReferencedLabel(String[] checkargs, int line){
         String lineNum = Integer.toString(line);
         if (checkargs.length == 1){  //1 Argument
@@ -1379,7 +1388,7 @@ public class Assembler {
         }//end only 1 argument check
         else if (checkargs.length == 2){ //2 Arguments
             //First two if conditions hold the situations for when "STORE", "RLOAD", "RLOAD", "RSTORE" etc. using references.
-            if (checkargs[0].startsWith("[")){                          
+            if (checkargs[0].startsWith("[")){
                 checkargs[0] = checkargs[0].replaceAll("[\\[.\\]]","");
                 updateReferenceWithTwoArgs(checkargs, lineNum);
                 checkargs[0] = "[" + checkargs[0] + "]";
@@ -1391,7 +1400,7 @@ public class Assembler {
             }
             else{
                 updateReferenceWithTwoArgs(checkargs, lineNum);
-            }           
+            }
         }//end 2 arguments check
         else if(checkargs.length == 3){ //3 Arguments
             if (referenceLine.containsKey(checkargs[0])){
@@ -1405,23 +1414,23 @@ public class Assembler {
             }
         }//end 3 arguments check
     }
-    
+
     /**
      * Author: Guojun Liu
-     * 04/19/2016 
+     * 04/19/2016
      * @param newArgs
-     * @param line 
+     * @param line
      */
     private void updateReferenceWithTwoArgs (String[] newArgs, String line){
         String tempArg0 = newArgs[0];
         String tempArgs1 = newArgs[1];  //save the orignal arguments
         if (newArgs[0].contains("=")){
-           newArgs[0] = newArgs[0].substring(newArgs[0].lastIndexOf("=")+1); 
+           newArgs[0] = newArgs[0].substring(newArgs[0].lastIndexOf("=")+1);
         }
         if (newArgs[1].contains("=")){
-           newArgs[1] = newArgs[1].substring(newArgs[1].lastIndexOf("=")+1); 
-        }// end check EQU 
-        
+           newArgs[1] = newArgs[1].substring(newArgs[1].lastIndexOf("=")+1);
+        }// end check EQU
+
         if (referenceLine.containsKey(newArgs[0])){
             referenceLine.put(newArgs[0], referenceLine.get(newArgs[0])+ line + "  ");
         }
@@ -1429,15 +1438,15 @@ public class Assembler {
             referenceLine.put(newArgs[1], referenceLine.get(newArgs[1])+line + "  ");
         }
         newArgs[0] = tempArg0;
-        newArgs[1] = tempArgs1;   //back to orignal arguments 
+        newArgs[1] = tempArgs1;   //back to orignal arguments
     }
 
     /*
     *   Author: Guojun Liu
     *   03/15/2016
-    *   Create a assembler list 
+    *   Create a assembler list
     */
-      
+
     private void generateAssemblerList(){
         int lineCounter;   // Only use when the user need to print out this listing
         String restDBcode = "";             //Declare a string DB contents in the memory
@@ -1465,13 +1474,13 @@ public class Assembler {
                         if (Object_code[i].endsWith("]")){
                             Object_code[i] = Object_code[i].substring(0, Object_code[i].length()-1);
                         }
-                        if (Object_code[i].length() > 15){     
+                        if (Object_code[i].length() > 15){
                             String tempDBcode = Object_code[i].substring(0, 15);
                             output.printf("%-12s%-18s%4d%4s", Location[i], tempDBcode, codeLines, " ");
                             restDBcode  = Object_code[i].replace(tempDBcode, "");     //Remove first row of DB content
                         }else{
                             output.printf("%-12s%-18s%4d%4s", Location[i], Object_code[i], codeLines, " ");
-                        }                       
+                        }
                     }else{
                         output.printf("%-12s%-18s%4d%4s", Location[i], " ", codeLines, " ");
                     }
@@ -1499,10 +1508,10 @@ public class Assembler {
                         restDBcode  = "";                                   //Clear restDBcode
                     }
                 }//end while
-                             
+
                 codeLines++;
             }
-            
+
             //The following part will generate a cross reference listing for the above assembler listing.
             output.println();
             output.println();
@@ -1541,23 +1550,23 @@ public class Assembler {
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Assembler.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
     }//end generateAssemblerList
-    
-    
+
+
     /**
      * Author: Guojun Liu
      * 04/26/2016
      * @param output
      * @param lineNum
      * @return the line count number;
-     * 
-     * This method is designed for page format of assembler listing. If 
-     * the user need to print out this listing, invoke this method will 
-     * format each page in a standard print format. Otherwise, it is not 
+     *
+     * This method is designed for page format of assembler listing. If
+     * the user need to print out this listing, invoke this method will
+     * format each page in a standard print format. Otherwise, it is not
      * necessary to invoke this method.
      */
-    
+
     private int checkLineNumber(java.io.PrintWriter output, int lineNum){
         if(lineNum == 63){
                     output.println();
@@ -1571,6 +1580,6 @@ public class Assembler {
         }
         return lineNum;
     }
-    
-    
+
+
 }

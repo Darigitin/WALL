@@ -11,6 +11,7 @@ import javax.swing.DefaultCellEditor;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.table.AbstractTableModel;
 
 /**
  *
@@ -25,7 +26,7 @@ public class CellEditor extends DefaultCellEditor {
     @Override
     public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected,
       int row, int column) {
-    
+        
         JTextField editor = (JTextField) super.getTableCellEditorComponent(table, value, isSelected,
                                 row, column);
         

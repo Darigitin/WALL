@@ -101,6 +101,7 @@ public class Clock {
         if (controller.getInstructionPointer() > 0xFF) {
             timer.cancel();
         }
+        controller.setIPinstruction();    //update MAR
         fetch();
         controller.setInstructionCounterText(instructionCount++);   //CHANGELOG: 7
     }
